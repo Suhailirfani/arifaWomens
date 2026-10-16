@@ -1,0 +1,216 @@
+{% extends 'base.html' %}
+
+{% block title %}Customize Partial Vehicle Fee | Arifa Women's Academy{% endblock %}
+
+{% block content %}
+<div style="max-width: 680px; margin: 0 auto;">
+  <!-- Header -->
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+    <div>
+      <span class="badge bg-pastel-amber" style="margin-bottom: 0.35rem;">PARTIAL USAGE FEE ADJUSTMENT</span>
+      <h1 style="font-size: 1.75rem;">Customize Monthly Vehicle Fee</h1>
+      <p style="color: var(--text-muted); font-size: 0.85rem;">
+        Adjust fee for {{ due_record.student.full_name }} for {{ month_name }} {{ due_record.year }}
+      </p>
+    </div>
+    <a href="{% url 'fees:vehicle_fee_dashboard' %}?month={{ due_record.month }}&year={{ due_record.year }}" class="btn btn-secondary btn-sm">
+      &larr; Back to Vehicle Ledger
+    </a>
+  </div>
+
+  <!-- Student & Boarding Overview Bento Card -->
+  <div class="bento-card" style="margin-bottom: 1.5rem; background: linear-gradient(135deg, var(--bg-surface), var(--amber-pastel)); border-color: rgba(245, 158, 11, 0.3);">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; font-size: 0.88rem;">
+      <div>
+        <span style="color: var(--text-muted); display: block; font-size: 0.76rem; font-weight: 600;">STUDENT</span>
+        <b style="font-size: 1.05rem;">{{ due_record.student.full_name }}</b>
+        <span style="font-size: 0.78rem; color: var(--text-muted); display: block;">Adm No: {{ due_record.student.admission_number }}</span>
+      </div>
+
+      <div>
+        <span style="color: var(--text-muted); display: block; font-size: 0.76rem; font-weight: 600;">CLASS / STREAM</span>
+        <b>{{ due_record.student.current_class.display_name|default:"—" }}</b>
+      </div>
+
+      <div>
+        <span style="color: var(--text-muted); display: block; font-size: 0.76rem; font-weight: 600;">BUS STOP &amp; ROUTE</span>
+        <b>{{ due_record.bus_stop.stop_name|default:"—" }}</b>
+        {% if due_record.bus_stop.route_name %}
+          <span style="font-size: 0.75rem; color: var(--text-muted); display: block;">{{ due_record.bus_stop.route_name }}</span>
+        {% endif %}
+      </div>
+
+      <div>
+        <span style="color: var(--text-muted); display: block; font-size: 0.76rem; font-weight: 600;">BASE STOP RATE</span>
+        <b style="font-size: 1.15rem; color: var(--amber-primary);">₹<span id="display-base-fee">{{ base_fee|floatformat:2 }}</span></b>
+        <span style="font-size: 0.75rem; color: var(--text-muted); display: block;">Standard Monthly Fee</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Customization Form Card -->
+  <div class="bento-card">
+    <form method="post" id="customize-form">
+      {% csrf_token %}
+
+      <div style="margin-bottom: 1.25rem;">
+        <label class="form-label" style="font-weight: 700; margin-bottom: 0.5rem; display: block;">
+          Partial Usage Concession Mode
+        </label>
+        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+          <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; padding: 0.5rem 0.75rem; background: var(--bg-subtle); border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+            <input type="radio" name="discount_mode" value="none" {% if form.custom_discount_type.value == 'none' or not form.custom_discount_type.value %}checked{% endif %} onchange="updateMode('none')">
+            <div>
+              <b>No Concession (Full Monthly Stop Fee)</b>
+              <span style="display: block; font-size: 0.75rem; color: var(--text-muted);">Charge standard ₹{{ base_fee|floatformat:2 }} for this month</span>
+            </div>
+          </label>
+
+          <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; padding: 0.5rem 0.75rem; background: var(--bg-subtle); border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+            <input type="radio" name="discount_mode" value="fixed" {% if form.custom_discount_type.value == 'fixed' %}checked{% endif %} onchange="updateMode('fixed')">
+            <div>
+              <b style="color: var(--amber-primary);">Reduce Exact Amount in ₹</b>
+              <span style="display: block; font-size: 0.75rem; color: var(--text-muted);">E.g. Deduct ₹300 or ₹500 for missing days or half month</span>
+            </div>
+          </label>
+
+          <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; padding: 0.5rem 0.75rem; background: var(--bg-subtle); border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+            <input type="radio" name="discount_mode" value="percent" {% if form.custom_discount_type.value == 'percent' %}checked{% endif %} onchange="updateMode('percent')">
+            <div>
+              <b style="color: var(--rose-primary);">Reduce Percentage in %</b>
+              <span style="display: block; font-size: 0.75rem; color: var(--text-muted);">E.g. 50% off for 2-week exam leave or one-way travel</span>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <!-- Hidden actual form choice -->
+      <div style="display: none;">
+        {{ form.custom_discount_type }}
+      </div>
+
+      <!-- Value Input Container -->
+      <div class="form-group" id="group-discount-val" style="margin-bottom: 1.25rem;">
+        <label class="form-label" id="label-discount-val">Reduction Value*</label>
+        <div style="position: relative;">
+          {{ form.custom_discount_value }}
+        </div>
+        <small style="color: var(--text-muted); font-size: 0.75rem;" id="help-discount-val">
+          Enter exact amount in ₹ or percentage to reduce.
+        </small>
+      </div>
+
+      <!-- Dynamic Calculation Result Box -->
+      <div style="background: var(--bg-surface); border: 2px dashed var(--border-color); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.5rem;">
+        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 0.5rem;">
+          <span style="color: var(--text-muted);">Base Stop Fee:</span>
+          <b>₹{{ base_fee|floatformat:2 }}</b>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 0.5rem;">
+          <span style="color: var(--text-muted);">Concession Applied:</span>
+          <b style="color: var(--coral-primary);" id="display-discount">-₹0.00</b>
+        </div>
+        <hr style="border: none; border-top: 1px solid var(--border-color); margin: 0.5rem 0;">
+        <div style="display: flex; justify-content: space-between; align-items: baseline;">
+          <span style="font-weight: 700; font-size: 0.95rem; color: var(--text-main);">Final Payable Amount for {{ month_name }}:</span>
+          <span style="font-size: 1.6rem; font-weight: 800; color: var(--sage-primary);">
+            ₹<span id="display-final">{{ due_record.final_amount|floatformat:2 }}</span>
+          </span>
+        </div>
+      </div>
+
+      <!-- Hidden actual final amount input that submits -->
+      <div style="display: none;">
+        {{ form.final_amount }}
+      </div>
+
+      <!-- Notes / Reason for Concession -->
+      <div class="form-group" style="margin-bottom: 1.25rem;">
+        <label class="form-label">Reason / Notes for Partial Usage</label>
+        {{ form.custom_notes }}
+        <small style="color: var(--text-muted); font-size: 0.75rem;">
+          e.g. Attended 10 days only in October, joined mid-month, medical leave, or one-way travel.
+        </small>
+      </div>
+
+      <!-- Due Date -->
+      <div class="form-group" style="margin-bottom: 1.5rem;">
+        <label class="form-label">Payment Due Date</label>
+        {{ form.due_date }}
+      </div>
+
+      <!-- Buttons -->
+      <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+        <a href="{% url 'fees:vehicle_fee_dashboard' %}?month={{ due_record.month }}&year={{ due_record.year }}" class="btn btn-secondary">
+          Cancel
+        </a>
+        <button type="submit" class="btn btn-primary btn-lg">
+          💾 Save Customized Vehicle Fee
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+const baseFee = parseFloat("{{ base_fee }}") || 0;
+const hiddenTypeSelect = document.getElementById('id_custom_discount_type');
+const valInput = document.getElementById('id_custom_discount_value');
+const finalInput = document.getElementById('id_final_amount');
+const displayDiscount = document.getElementById('display-discount');
+const displayFinal = document.getElementById('display-final');
+const groupVal = document.getElementById('group-discount-val');
+const labelVal = document.getElementById('label-discount-val');
+const helpVal = document.getElementById('help-discount-val');
+
+function calculate() {
+  const mode = hiddenTypeSelect.value;
+  const rawVal = parseFloat(valInput.value) || 0;
+  let discount = 0;
+  let finalAmt = baseFee;
+
+  if (mode === 'fixed') {
+    discount = Math.min(baseFee, Math.max(0, rawVal));
+    finalAmt = Math.max(0, baseFee - discount);
+    displayDiscount.innerText = `-₹${discount.toFixed(2)}`;
+  } else if (mode === 'percent') {
+    const pct = Math.min(100, Math.max(0, rawVal));
+    discount = (baseFee * pct) / 100;
+    finalAmt = Math.max(0, baseFee - discount);
+    displayDiscount.innerText = `-${pct.toFixed(0)}% (-₹${discount.toFixed(2)})`;
+  } else {
+    displayDiscount.innerText = '-₹0.00';
+    finalAmt = baseFee;
+  }
+
+  displayFinal.innerText = finalAmt.toFixed(2);
+  finalInput.value = finalAmt.toFixed(2);
+}
+
+function updateMode(mode) {
+  hiddenTypeSelect.value = mode;
+  if (mode === 'none') {
+    groupVal.style.display = 'none';
+    valInput.value = '0.00';
+  } else if (mode === 'fixed') {
+    groupVal.style.display = 'block';
+    labelVal.innerText = 'Exact Amount to Reduce (₹)*';
+    helpVal.innerText = `Enter the amount in ₹ to subtract from ₹${baseFee.toFixed(2)}.`;
+  } else if (mode === 'percent') {
+    groupVal.style.display = 'block';
+    labelVal.innerText = 'Percentage to Reduce (%)*';
+    helpVal.innerText = 'Enter percentage discount (e.g. 50 for 50% discount).';
+  }
+  calculate();
+}
+
+valInput.addEventListener('input', calculate);
+
+// Initial trigger
+window.addEventListener('DOMContentLoaded', () => {
+  const currentMode = hiddenTypeSelect.value || 'none';
+  updateMode(currentMode);
+  calculate();
+});
+</script>
+{% endblock %}

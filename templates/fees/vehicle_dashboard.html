@@ -1,0 +1,575 @@
+{% extends 'base.html' %}
+
+{% block title %}Monthly Vehicle Fees & Bus Stop Setup | Arifa Women's Academy{% endblock %}
+
+{% block content %}
+<!-- Top Header & Actions -->
+<div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.75rem;">
+  <div>
+    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
+      <span class="badge bg-pastel-amber">TRANSPORTATION BILLING</span>
+      <span class="badge bg-pastel-sky">Due Every {{ setting.due_day_of_month }}th of Month</span>
+    </div>
+    <h1 style="font-size: 1.85rem;">🚌 Monthly Vehicle Fees &amp; Bus Stop Master</h1>
+    <p style="color: var(--text-muted); font-size: 0.88rem;">
+      Fixed monthly stop rates, individual student partial-usage concessions, and monthly due rollouts
+    </p>
+  </div>
+
+  <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+    <a href="{% url 'fees:bus_stop_create' %}" class="btn btn-primary btn-sm">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+      + Add Bus Stop &amp; Fee
+    </a>
+    <a href="{% url 'fees:vehicle_pass_create' %}" class="btn btn-secondary btn-sm">
+      + Assign Student Pass
+    </a>
+    <a href="{% url 'fees:vehicle_billing_setting_update' %}" class="btn btn-secondary btn-sm" title="Change default due day of month (e.g. 1st, 5th, 10th)">
+      ⚙️ Due Date ({{ setting.due_day_of_month }}th)
+    </a>
+    <a href="{% url 'fees:fee_master' %}" class="btn btn-secondary btn-sm">
+      &larr; Fee Master
+    </a>
+  </div>
+</div>
+
+<!-- Educational Banner: Explains Stop-Based Monthly Fee & Admin Customization -->
+<div class="bento-card col-12" style="margin-bottom: 1.75rem; background: linear-gradient(135deg, var(--bg-surface), var(--amber-pastel)); border-color: rgba(245, 158, 11, 0.3);">
+  <div style="display: flex; gap: 1rem; align-items: flex-start;">
+    <div style="font-size: 2.2rem; line-height: 1;">🚍</div>
+    <div style="flex: 1;">
+      <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.3rem; color: var(--text-main);">
+        How Monthly Vehicle Fees Work in Arifa Academy
+      </h3>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem; line-height: 1.45;">
+        Vehicle fees are <b>monthly recurring fees</b>, not yearly installments.
+      </p>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0.75rem;">
+        <div style="background: var(--bg-surface); padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+          <span style="font-weight: 700; font-size: 0.82rem; color: var(--amber-primary); display: block; margin-bottom: 0.2rem;">
+            1. Fixed Monthly Rate Per Stop
+          </span>
+          <span style="font-size: 0.78rem; color: var(--text-muted); line-height: 1.35; display: block;">
+            Each bus stop has a fixed monthly fee (e.g. Feroke Chungam: ₹1,200). Boarding students are charged this exact monthly fee.
+          </span>
+        </div>
+        <div style="background: var(--bg-surface); padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+          <span style="font-weight: 700; font-size: 0.82rem; color: var(--sky-primary); display: block; margin-bottom: 0.2rem;">
+            2. Due Updates Every {{ setting.due_day_of_month }}st of Month
+          </span>
+          <span style="font-size: 0.78rem; color: var(--text-muted); line-height: 1.35; display: block;">
+            Dues roll out automatically on the {{ setting.due_day_of_month }}st (or user-chosen date) of every month for all active bus pass holders.
+          </span>
+        </div>
+        <div style="background: var(--bg-surface); padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+          <span style="font-weight: 700; font-size: 0.82rem; color: var(--rose-primary); display: block; margin-bottom: 0.2rem;">
+            3. Partial Usage Customizer
+          </span>
+          <span style="font-size: 0.78rem; color: var(--text-muted); line-height: 1.35; display: block;">
+            If a student uses the bus partially (e.g. 10 days, one-way, medical leave), Admin can reduce an exact amount (₹) or reduce by percentage (%) for that month.
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Month & Year Filter Bar + PDF Export -->
+<div class="bento-card col-12" style="margin-bottom: 1.75rem; padding: 1.25rem;">
+  <form method="get" action="{% url 'fees:vehicle_fee_dashboard' %}" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+    <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+      <div style="display: flex; align-items: center; gap: 0.35rem;">
+        <label style="font-size: 0.82rem; font-weight: 700; color: var(--text-muted);">MONTH:</label>
+        <select name="month" class="form-select" style="min-width: 140px; font-weight: 600;">
+          {% for m_num, m_label in month_choices %}
+            <option value="{{ m_num }}" {% if m_num == month %}selected{% endif %}>{{ m_label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 0.35rem;">
+        <label style="font-size: 0.82rem; font-weight: 700; color: var(--text-muted);">YEAR:</label>
+        <select name="year" class="form-select" style="min-width: 100px; font-weight: 600;">
+          {% for y_num in year_choices %}
+            <option value="{{ y_num }}" {% if y_num == year %}selected{% endif %}>{{ y_num }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 0.35rem;">
+        <label style="font-size: 0.82rem; font-weight: 700; color: var(--text-muted);">BUS STOP:</label>
+        <select name="bus_stop_id" class="form-select" style="min-width: 180px;">
+          <option value="">All Academy Bus Stops</option>
+          {% for stop in bus_stops %}
+            <option value="{{ stop.id }}" {% if selected_stop and selected_stop.id == stop.id %}selected{% endif %}>
+              {{ stop.stop_name }} (₹{{ stop.monthly_fee }})
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-sm">
+        Filter Billing Period
+      </button>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+      <a href="{% url 'fees:vehicle_dues_generate' %}?month={{ month }}&year={{ year }}" class="btn btn-secondary btn-sm" title="Re-sync monthly dues with current bus stop rates">
+        🔄 Re-Sync {{ month_name }} Dues
+      </a>
+      <a href="{% url 'fees:download_vehicle_defaulters_pdf' %}?month={{ month }}&year={{ year }}{% if selected_stop %}&bus_stop_id={{ selected_stop.id }}{% endif %}" class="btn btn-secondary btn-sm" title="Download formatted PDF of vehicle fee defaulters">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        Download Defaulters PDF
+      </a>
+    </div>
+  </form>
+</div>
+
+<!-- Bento KPI Cards for Selected Month -->
+<div class="bento-grid" style="margin-bottom: 2rem;">
+  <!-- Card 1: Total Bus Pass Holders -->
+  <div class="bento-card col-3 col-md-6">
+    <div class="stat-widget">
+      <div class="stat-info">
+        <span class="stat-label">Bus Pass Holders</span>
+        <span class="stat-value" style="color: var(--amber-primary);">{{ total_opted }}</span>
+        <span class="stat-subtext">Students traveling in {{ month_name }}</span>
+      </div>
+      <div class="stat-icon-wrapper bg-pastel-amber">🚌</div>
+    </div>
+  </div>
+
+  <!-- Card 2: Expected Monthly Collection -->
+  <div class="bento-card col-3 col-md-6">
+    <div class="stat-widget">
+      <div class="stat-info">
+        <span class="stat-label">Expected for {{ month_name }}</span>
+        <span class="stat-value" style="color: var(--sky-primary);">₹{{ expected_amount|floatformat:2 }}</span>
+        <span class="stat-subtext">Sum of active stop dues</span>
+      </div>
+      <div class="stat-icon-wrapper bg-pastel-sky">📋</div>
+    </div>
+  </div>
+
+  <!-- Card 3: Collected So Far -->
+  <div class="bento-card col-3 col-md-6">
+    <div class="stat-widget">
+      <div class="stat-info">
+        <span class="stat-label">Collected Amount</span>
+        <span class="stat-value" style="color: var(--sage-primary);">₹{{ collected_amount|floatformat:2 }}</span>
+        <span class="stat-subtext">{{ paid_dues|length }} student(s) cleared</span>
+      </div>
+      <div class="stat-icon-wrapper bg-pastel-sage">💳</div>
+    </div>
+  </div>
+
+  <!-- Card 4: Pending Defaulters -->
+  <div class="bento-card col-3 col-md-6">
+    <div class="stat-widget">
+      <div class="stat-info">
+        <span class="stat-label">Pending Dues (Defaulters)</span>
+        <span class="stat-value" style="color: var(--coral-primary);">₹{{ pending_amount|floatformat:2 }}</span>
+        <span class="stat-subtext">{{ unpaid_dues|length }} pending ({{ collection_rate }}% rate)</span>
+      </div>
+      <div class="stat-icon-wrapper bg-pastel-rose">⚠️</div>
+    </div>
+  </div>
+</div>
+
+<!-- Interactive Navigation Tabs -->
+<div style="display: flex; gap: 0.5rem; border-bottom: 2px solid var(--border-color); margin-bottom: 1.5rem;" id="vehicle-tabs">
+  <button class="btn btn-secondary tab-btn active" onclick="switchTab('tab-dues', this)" style="border-radius: var(--radius-md) var(--radius-md) 0 0; font-weight: 700; border-bottom: none;">
+    📅 {{ month_name }} {{ year }} Dues &amp; Defaulters ({{ unpaid_dues|length }} Due)
+  </button>
+  <button class="btn btn-secondary tab-btn" onclick="switchTab('tab-stops', this)" style="border-radius: var(--radius-md) var(--radius-md) 0 0; font-weight: 700; border-bottom: none;">
+    🚏 Bus Stops &amp; Fixed Fees ({{ bus_stops|length }})
+  </button>
+  <button class="btn btn-secondary tab-btn" onclick="switchTab('tab-passes', this)" style="border-radius: var(--radius-md) var(--radius-md) 0 0; font-weight: 700; border-bottom: none;">
+    🎫 Student Bus Passes &amp; Concessions ({{ passes|length }})
+  </button>
+</div>
+
+<!-- ========================================================================= -->
+<!-- TAB 1: MONTHLY DUES & DEFAULTERS FOR SELECTED MONTH -->
+<!-- ========================================================================= -->
+<div id="tab-dues" class="tab-pane">
+  <!-- Section 1: Pending Dues (Defaulters) with Customization Action -->
+  <div class="bento-card col-12" style="margin-bottom: 2rem; border-left: 5px solid var(--coral-primary);">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem;">
+      <div>
+        <h3 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 0.2rem; color: var(--coral-primary);">
+          1. Pending Vehicle Fees — {{ month_name }} {{ year }} ({{ unpaid_dues|length }} Students)
+        </h3>
+        <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0;">
+          Students who have not yet paid for this month. You can customize their charge for partial usage or record a receipt.
+        </p>
+      </div>
+      <div>
+        <span class="badge bg-pastel-rose" style="font-size: 0.85rem; font-weight: 700;">
+          Total Pending: ₹{{ pending_amount|floatformat:2 }}
+        </span>
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="custom-table">
+        <thead>
+          <tr>
+            <th style="width: 40px;">#</th>
+            <th>Admission No</th>
+            <th>Student Name</th>
+            <th>Class / Section</th>
+            <th>Bus Stop &amp; Route</th>
+            <th>Base Fee</th>
+            <th>Partial Usage / Concession</th>
+            <th>Net Due (₹)</th>
+            <th>Due Date</th>
+            <th style="text-align: right;">Admin Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for due in unpaid_dues %}
+            <tr>
+              <td><b>{{ forloop.counter }}</b></td>
+              <td><code>{{ due.student.admission_number }}</code></td>
+              <td>
+                <b>{{ due.student.full_name }}</b>
+                {% if due.student.guardian_phone %}
+                  <span style="font-size: 0.74rem; color: var(--text-muted); display: block;">📞 {{ due.student.guardian_phone }}</span>
+                {% endif %}
+              </td>
+              <td>{{ due.student.current_class.display_name|default:"—" }}</td>
+              <td>
+                <b>{{ due.bus_stop.stop_name|default:"—" }}</b>
+                {% if due.bus_stop.route_name %}
+                  <span style="font-size: 0.74rem; color: var(--text-muted); display: block;">{{ due.bus_stop.route_name }}</span>
+                {% endif %}
+              </td>
+              <td><span style="color: var(--text-muted);">₹{{ due.base_fee|floatformat:2 }}</span></td>
+              <td>
+                {% if due.custom_discount_type == 'fixed' and due.custom_discount_value > 0 %}
+                  <span class="badge bg-pastel-amber" title="Reduced exact amount">
+                    -₹{{ due.custom_discount_value|floatformat:2 }}
+                  </span>
+                  {% if due.custom_notes %}
+                    <span style="font-size: 0.72rem; color: var(--text-muted); display: block;">{{ due.custom_notes }}</span>
+                  {% endif %}
+                {% elif due.custom_discount_type == 'percent' and due.custom_discount_value > 0 %}
+                  <span class="badge bg-pastel-amber" title="Reduced percentage">
+                    -{{ due.custom_discount_value|floatformat:0 }}% off
+                  </span>
+                  {% if due.custom_notes %}
+                    <span style="font-size: 0.72rem; color: var(--text-muted); display: block;">{{ due.custom_notes }}</span>
+                  {% endif %}
+                {% else %}
+                  <span style="color: var(--text-muted); font-size: 0.8rem;">Full Stop Fee</span>
+                {% endif %}
+              </td>
+              <td>
+                <span style="font-weight: 800; font-size: 1.05rem; color: var(--coral-primary);">
+                  ₹{{ due.final_amount|floatformat:2 }}
+                </span>
+              </td>
+              <td>
+                <span style="font-size: 0.8rem; {% if due.is_overdue %}color: var(--coral-primary); font-weight: 700;{% endif %}">
+                  {{ due.due_date|date:"d M Y" }}
+                  {% if due.is_overdue %}
+                    <span class="badge bg-pastel-rose" style="font-size: 0.65rem;">Overdue</span>
+                  {% endif %}
+                </span>
+              </td>
+              <td style="text-align: right;">
+                <div style="display: flex; gap: 0.35rem; justify-content: flex-end; flex-wrap: wrap;">
+                  <!-- CUSTOMIZE FEE BUTTON (Exact ₹ or % reduction) -->
+                  <a href="{% url 'fees:vehicle_fee_customize' due.id %}" class="btn btn-secondary btn-sm" style="font-size: 0.76rem; padding: 0.25rem 0.55rem; color: var(--amber-primary);" title="Customize vehicle fee for partial usage (reduce exact ₹ or %)">
+                    ⚡ Partial / Concession
+                  </a>
+                  <!-- COLLECT FEE BUTTON -->
+                  <a href="{% url 'fees:fee_collect' %}?vehicle_fee_id={{ due.id }}" class="btn btn-primary btn-sm" style="font-size: 0.76rem; padding: 0.25rem 0.55rem;" title="Record fee payment and generate receipt">
+                    💳 Collect ₹{{ due.final_amount|floatformat:0 }}
+                  </a>
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="10" style="text-align: center; color: var(--sage-primary); font-weight: 600; padding: 2rem;">
+                🎉 Excellent! All students have cleared their vehicle fees for {{ month_name }} {{ year }}.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Section 2: Paid Vehicle Fees for Selected Month -->
+  <div class="bento-card col-12" style="border-left: 5px solid var(--sage-primary);">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem;">
+      <div>
+        <h3 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 0.2rem; color: var(--sage-primary);">
+          2. Cleared Vehicle Payments — {{ month_name }} {{ year }} ({{ paid_dues|length }} Paid)
+        </h3>
+        <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0;">
+          Receipts issued for transportation in this billing cycle
+        </p>
+      </div>
+      <div>
+        <span class="badge bg-pastel-sage" style="font-size: 0.85rem; font-weight: 700;">
+          Total Cleared: ₹{{ collected_amount|floatformat:2 }}
+        </span>
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="custom-table">
+        <thead>
+          <tr>
+            <th style="width: 40px;">#</th>
+            <th>Receipt No</th>
+            <th>Student Name</th>
+            <th>Bus Stop</th>
+            <th>Payment Date</th>
+            <th>Payment Mode</th>
+            <th>Amount Paid</th>
+            <th style="text-align: right;">Receipt</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in paid_records %}
+            <tr>
+              <td><b>{{ forloop.counter }}</b></td>
+              <td><b>{{ r.receipt_number }}</b></td>
+              <td><b>{{ r.student_name }}</b></td>
+              <td>{{ r.bus_stop_name }}</td>
+              <td>{{ r.payment_date|date:"d M Y" }}</td>
+              <td><span class="badge bg-pastel-sky">{{ r.payment_mode }}</span></td>
+              <td><span style="font-weight: 800; color: var(--sage-primary);">₹{{ r.amount_paid|floatformat:2 }}</span></td>
+              <td style="text-align: right;">
+                <div style="display: flex; gap: 0.35rem; justify-content: flex-end;">
+                  <a href="{% url 'fees:receipt_detail' r.receipt_number %}" class="btn btn-secondary btn-sm" style="font-size: 0.75rem; padding: 0.25rem 0.55rem;">
+                    View
+                  </a>
+                  <a href="{% url 'fees:receipt_pdf' r.receipt_number %}" class="btn btn-secondary btn-sm" style="font-size: 0.75rem; padding: 0.25rem 0.55rem;">
+                    PDF
+                  </a>
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
+                No payments recorded yet for {{ month_name }} {{ year }}.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- TAB 2: BUS STOPS & FIXED FEES MASTER -->
+<!-- ========================================================================= -->
+<div id="tab-stops" class="tab-pane" style="display: none;">
+  <div class="bento-card col-12">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.25rem;">
+      <div>
+        <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.2rem;">
+          Academy Bus Stops &amp; Fixed Monthly Rates
+        </h3>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">
+          Define pickup/drop locations and their standard monthly charge
+        </p>
+      </div>
+      <a href="{% url 'fees:bus_stop_create' %}" class="btn btn-primary btn-sm">
+        + Add New Bus Stop
+      </a>
+    </div>
+
+    <div class="table-responsive">
+      <table class="custom-table">
+        <thead>
+          <tr>
+            <th style="width: 40px;">#</th>
+            <th>Bus Stop Name</th>
+            <th>Route / Area</th>
+            <th>Fixed Monthly Fee</th>
+            <th>Pickup / Drop Time</th>
+            <th>Active Students</th>
+            <th>Status</th>
+            <th style="text-align: right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for stop in bus_stops %}
+            <tr>
+              <td><b>{{ forloop.counter }}</b></td>
+              <td>
+                <span style="font-weight: 700; font-size: 0.95rem;">{{ stop.stop_name }}</span>
+              </td>
+              <td>{{ stop.route_name|default:"General Route" }}</td>
+              <td>
+                <span style="font-size: 1.15rem; font-weight: 800; color: var(--amber-primary);">
+                  ₹{{ stop.monthly_fee|floatformat:2 }}
+                </span>
+                <span style="font-size: 0.72rem; color: var(--text-muted);">/ month</span>
+              </td>
+              <td>
+                <span style="font-size: 0.8rem; color: var(--text-muted);">
+                  {% if stop.pickup_time %}Pickup: {{ stop.pickup_time }}{% endif %}
+                  {% if stop.drop_time %}&bull; Drop: {{ stop.drop_time }}{% endif %}
+                  {% if not stop.pickup_time and not stop.drop_time %}—{% endif %}
+                </span>
+              </td>
+              <td>
+                <span class="badge bg-pastel-sky" style="font-weight: 700;">
+                  {{ stop.assigned_count }} student(s)
+                </span>
+              </td>
+              <td>
+                {% if stop.is_active %}
+                  <span class="badge bg-pastel-sage">Active</span>
+                {% else %}
+                  <span class="badge bg-pastel-amber">Inactive</span>
+                {% endif %}
+              </td>
+              <td style="text-align: right;">
+                <div style="display: flex; gap: 0.35rem; justify-content: flex-end;">
+                  <a href="{% url 'fees:bus_stop_edit' stop.id %}" class="btn btn-secondary btn-sm" style="font-size: 0.75rem; padding: 0.25rem 0.55rem;">
+                    Edit Rate &amp; Stop
+                  </a>
+                  <a href="{% url 'fees:bus_stop_delete' stop.id %}" class="btn btn-secondary btn-sm" style="font-size: 0.75rem; padding: 0.25rem 0.55rem; color: var(--coral-primary);">
+                    🗑️
+                  </a>
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                No bus stops configured yet. Click "+ Add New Bus Stop" to set up your routes and monthly fees.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- TAB 3: STUDENT BUS PASSES & STANDING CONCESSIONS -->
+<!-- ========================================================================= -->
+<div id="tab-passes" class="tab-pane" style="display: none;">
+  <div class="bento-card col-12">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.25rem;">
+      <div>
+        <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.2rem;">
+          Enrolled Student Bus Passes &amp; Standing Concessions
+        </h3>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">
+          Students registered for academy transportation with boarding stops and standing discounts
+        </p>
+      </div>
+      <a href="{% url 'fees:vehicle_pass_create' %}" class="btn btn-primary btn-sm">
+        + Assign Student Bus Pass
+      </a>
+    </div>
+
+    <div class="table-responsive">
+      <table class="custom-table">
+        <thead>
+          <tr>
+            <th style="width: 40px;">#</th>
+            <th>Admission No</th>
+            <th>Student Name</th>
+            <th>Class / Stream</th>
+            <th>Assigned Stop</th>
+            <th>Base Stop Fee</th>
+            <th>Standing Concession</th>
+            <th>Effective Monthly Charge</th>
+            <th style="text-align: right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in passes %}
+            <tr>
+              <td><b>{{ forloop.counter }}</b></td>
+              <td><code>{{ p.student.admission_number }}</code></td>
+              <td>
+                <b>{{ p.student.full_name }}</b>
+                {% if p.student.guardian_phone %}
+                  <span style="font-size: 0.74rem; color: var(--text-muted); display: block;">📞 {{ p.student.guardian_phone }}</span>
+                {% endif %}
+              </td>
+              <td>{{ p.student.current_class.display_name|default:"—" }}</td>
+              <td>
+                <span class="badge bg-pastel-amber" style="font-size: 0.82rem; font-weight: 700;">
+                  🚏 {{ p.bus_stop.stop_name }}
+                </span>
+              </td>
+              <td>₹{{ p.bus_stop.monthly_fee|floatformat:2 }}</td>
+              <td>
+                {% if p.discount_type == 'fixed' and p.discount_value > 0 %}
+                  <span class="badge bg-pastel-rose">-₹{{ p.discount_value|floatformat:2 }} off</span>
+                  {% if p.discount_reason %}
+                    <span style="font-size: 0.72rem; color: var(--text-muted); display: block;">{{ p.discount_reason }}</span>
+                  {% endif %}
+                {% elif p.discount_type == 'percent' and p.discount_value > 0 %}
+                  <span class="badge bg-pastel-rose">-{{ p.discount_value|floatformat:0 }}% off</span>
+                  {% if p.discount_reason %}
+                    <span style="font-size: 0.72rem; color: var(--text-muted); display: block;">{{ p.discount_reason }}</span>
+                  {% endif %}
+                {% else %}
+                  <span style="color: var(--text-muted); font-size: 0.8rem;">Standard Full Fee</span>
+                {% endif %}
+              </td>
+              <td>
+                <span style="font-weight: 800; font-size: 1.05rem; color: var(--sage-primary);">
+                  ₹{{ p.calculated_monthly_fee|floatformat:2 }}
+                </span>
+                <span style="font-size: 0.72rem; color: var(--text-muted);">/ month</span>
+              </td>
+              <td style="text-align: right;">
+                <div style="display: flex; gap: 0.35rem; justify-content: flex-end;">
+                  <a href="{% url 'fees:vehicle_pass_edit' p.id %}" class="btn btn-secondary btn-sm" style="font-size: 0.75rem; padding: 0.25rem 0.55rem;">
+                    Edit Pass
+                  </a>
+                  <a href="{% url 'fees:vehicle_pass_delete' p.id %}" class="btn btn-secondary btn-sm" style="font-size: 0.75rem; padding: 0.25rem 0.55rem; color: var(--coral-primary);">
+                    Cancel
+                  </a>
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="9" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                No students assigned to bus stops yet. Click "+ Assign Student Bus Pass" to register students.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Tab Switching Script -->
+<script>
+function switchTab(tabId, el) {
+  document.querySelectorAll('.tab-pane').forEach(p => p.style.display = 'none');
+  document.querySelectorAll('#vehicle-tabs .tab-btn').forEach(b => {
+    b.classList.remove('active');
+    b.style.background = 'transparent';
+    b.style.borderColor = 'transparent';
+  });
+  document.getElementById(tabId).style.display = 'block';
+  el.classList.add('active');
+  el.style.background = 'var(--bg-surface)';
+  el.style.border = '1px solid var(--border-color)';
+  el.style.borderBottom = 'none';
+}
+</script>
+{% endblock %}

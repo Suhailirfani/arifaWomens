@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+
+{% block title %}Collect Fee Payment | Arifa Women's Academy{% endblock %}
+
+{% block content %}
+<div style="max-width: 680px; margin: 0 auto;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+    <div>
+      <span class="badge bg-pastel-sage" style="margin-bottom: 0.35rem;">TRANSACTION REGISTER</span>
+      <h1 style="font-size: 1.75rem;">Collect Fee Payment</h1>
+      <p style="color: var(--text-muted); font-size: 0.85rem;">Issue receipt for Course Fee Installments or Monthly Vehicle Transport</p>
+    </div>
+    <a href="{% url 'fees:fee_dashboard' %}" class="btn btn-secondary btn-sm">&larr; Back to Fees</a>
+  </div>
+
+  <div class="bento-card">
+    <form method="post" id="collect-form">
+      {% csrf_token %}
+
+      <div class="form-group" style="margin-bottom: 1.25rem;">
+        <label class="form-label">Receipt Number (Auto Generated)</label>
+        {{ form.receipt_number }}
+      </div>
+
+      <!-- Fee Category Type (Course Installment vs Monthly Vehicle Fee) -->
+      <div class="form-group" style="margin-bottom: 1.25rem;">
+        <label class="form-label" style="font-weight: 700;">Fee Category / Type*</label>
+        {{ form.fee_type }}
+        {% if form.fee_type.errors %}<span style="color: var(--coral-primary); font-size: 0.78rem;">{{ form.fee_type.errors }}</span>{% endif %}
+      </div>
+
+      <div class="form-group" style="margin-bottom: 1.25rem;">
+        <label class="form-label">Select Student*</label>
+        {{ form.student }}
+        {% if form.student.errors %}<span style="color: var(--coral-primary); font-size: 0.78rem;">{{ form.student.errors }}</span>{% endif %}
+      </div>
+
+      <!-- Installment Row (Visible when fee_type == 'installment') -->
+      <div class="form-group" id="row-installment" style="margin-bottom: 1.25rem;">
+        <label class="form-label">Course Fee Installment*</label>
+        {{ form.installment }}
+        {% if form.installment.errors %}<span style="color: var(--coral-primary); font-size: 0.78rem;">{{ form.installment.errors }}</span>{% endif %}
+      </div>
+
+      <!-- Vehicle Fee Row (Visible when fee_type == 'monthly_vehicle') -->
+      <div class="form-group" id="row-vehicle-fee" style="margin-bottom: 1.25rem; display: none;">
+        <label class="form-label">Monthly Vehicle Fee Record*</label>
+        {{ form.monthly_vehicle_fee }}
+        <small style="color: var(--text-muted); font-size: 0.75rem;">Select student's monthly vehicle due record (stop &amp; month)</small>
+        {% if form.monthly_vehicle_fee.errors %}<span style="color: var(--coral-primary); font-size: 0.78rem;">{{ form.monthly_vehicle_fee.errors }}</span>{% endif %}
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem;">
+        <div class="form-group">
+          <label class="form-label">Amount to Collect (₹)*</label>
+          {{ form.amount_paid }}
+          {% if form.amount_paid.errors %}<span style="color: var(--coral-primary); font-size: 0.78rem;">{{ form.amount_paid.errors }}</span>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Payment Date</label>
+          {{ form.payment_date }}
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem;">
+        <div class="form-group">
+          <label class="form-label">Payment Mode</label>
+          {{ form.payment_mode }}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Transaction Ref / Cheque No</label>
+          {{ form.transaction_id }}
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 1.5rem;">
+        <label class="form-label">Remarks / Notes</label>
+        {{ form.remarks }}
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 1rem;">
+        <a href="{% url 'fees:fee_dashboard' %}" class="btn btn-secondary">Cancel</a>
+        <button type="submit" class="btn btn-primary btn-lg">
+          Generate Receipt &amp; Save &rarr;
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+const feeTypeSelect = document.getElementById('select-fee-type');
+const rowInst = document.getElementById('row-installment');
+const rowVeh = document.getElementById('row-vehicle-fee');
+const instSelect = document.getElementById('select-installment');
+const vehSelect = document.getElementById('select-vehicle-fee');
+const amountInput = document.getElementById('input-amount-paid');
+
+function syncFeeType() {
+  if (feeTypeSelect.value === 'monthly_vehicle') {
+    rowInst.style.display = 'none';
+    rowVeh.style.display = 'block';
+  } else {
+    rowInst.style.display = 'block';
+    rowVeh.style.display = 'none';
+  }
+}
+
+feeTypeSelect.addEventListener('change', syncFeeType);
+window.addEventListener('DOMContentLoaded', syncFeeType);
+</script>
+{% endblock %}

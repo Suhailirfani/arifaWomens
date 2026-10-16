@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ staff.full_name }} | Staff Profile{% endblock %}
+
+{% block content %}
+<div style="max-width: 850px; margin: 0 auto;">
+  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
+    <div>
+      <span class="badge bg-pastel-lavender" style="margin-bottom: 0.35rem;">STAFF PROFILE</span>
+      <h1 style="font-size: 1.85rem;">{{ staff.full_name }}</h1>
+      <p style="color: var(--text-muted); font-size: 0.88rem;">{{ staff.designation }} &bull; Staff ID: <b>{{ staff.staff_id }}</b></p>
+    </div>
+
+    <div style="display: flex; gap: 0.5rem;">
+      <a href="{% url 'staff:staff_edit' staff.id %}" class="btn btn-secondary btn-sm">Edit Profile</a>
+      <a href="{% url 'staff:staff_delete' staff.id %}" class="btn btn-secondary btn-sm" style="color: var(--coral-primary);">Delete</a>
+    </div>
+  </div>
+
+  <div class="bento-grid">
+    <!-- Bio Card -->
+    <div class="bento-card col-6 col-md-12">
+      <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.25rem;">
+        <div style="width: 64px; height: 64px; border-radius: var(--radius-lg); background: linear-gradient(135deg, var(--lavender-primary), var(--rose-primary)); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.8rem; font-weight: 800;">
+          {{ staff.full_name|slice:":1" }}
+        </div>
+        <div>
+          <h3 style="font-size: 1.2rem;">{{ staff.full_name }}</h3>
+          <span class="badge bg-pastel-sage">{{ staff.designation }}</span>
+        </div>
+      </div>
+
+      <div style="font-size: 0.85rem; display: flex; flex-direction: column; gap: 0.6rem;">
+        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem;">
+          <span style="color: var(--text-muted);">Department:</span>
+          <b>{{ staff.department|default:"Academics" }}</b>
+        </div>
+        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem;">
+          <span style="color: var(--text-muted);">Qualifications:</span>
+          <b>{{ staff.qualification|default:"-" }}</b>
+        </div>
+        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem;">
+          <span style="color: var(--text-muted);">Joining Date:</span>
+          <b>{{ staff.joining_date|date:"d M Y"|default:"-" }}</b>
+        </div>
+        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem;">
+          <span style="color: var(--text-muted);">Phone:</span>
+          <b>{{ staff.phone }}</b>
+        </div>
+        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem;">
+          <span style="color: var(--text-muted);">Email:</span>
+          <b>{{ staff.email|default:"-" }}</b>
+        </div>
+        <div style="padding-top: 0.4rem;">
+          <span style="color: var(--text-muted); display: block; font-size: 0.78rem;">Address:</span>
+          <span>{{ staff.address|default:"Kodampuzha, Kozhikode" }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Assigned Classes & Subjects Card -->
+    <div class="bento-card col-6 col-md-12">
+      <h3 style="font-size: 1.15rem; margin-bottom: 1rem;">Academic Assignments</h3>
+
+      <div style="margin-bottom: 1.5rem;">
+        <span style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 0.5rem;">
+          Managed Class (Class Teacher):
+        </span>
+        {% for mc in staff.managed_classes.all %}
+          <div style="padding: 0.75rem; background: var(--bg-subtle); border: 1px solid var(--border-color); border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <b>{{ mc.display_name }}</b>
+            <a href="{% url 'dashboard:class_dashboard' mc.id %}" class="btn btn-secondary btn-sm" style="font-size: 0.75rem;">Dashboard &rarr;</a>
+          </div>
+        {% empty %}
+          <p style="font-size: 0.82rem; color: var(--text-muted);">No class currently assigned as Class Teacher.</p>
+        {% endfor %}
+      </div>
+
+      <div>
+        <span style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 0.5rem;">
+          Subjects Handled:
+        </span>
+        <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+          {% for subj in staff.subjects_taught.all %}
+            <span class="badge bg-pastel-lavender">{{ subj.name }} ({{ subj.code }})</span>
+          {% empty %}
+            <p style="font-size: 0.82rem; color: var(--text-muted);">No specific subjects assigned.</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

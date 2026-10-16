@@ -1,0 +1,215 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ school_class.display_name }} Dashboard | Arifa Women's Academy{% endblock %}
+
+{% block content %}
+<!-- Top Header & Class Switcher -->
+<div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
+  <div>
+    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
+      <span class="badge bg-pastel-rose">CLASS DASHBOARD</span>
+      <span class="badge bg-pastel-lavender">{{ school_class.grade.get_level_category_display }}</span>
+    </div>
+    <h1 style="font-size: 1.85rem;">{{ school_class.display_name }}</h1>
+    <p style="color: var(--text-muted); font-size: 0.88rem;">
+      Class Teacher: <b>{{ school_class.class_teacher.full_name|default:"Not Assigned" }}</b> &bull; Room: <b>{{ school_class.room_number|default:"-" }}</b>
+    </p>
+  </div>
+
+  <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+    <!-- Switch Class Dropdown -->
+    <select class="form-select" style="width: auto; min-width: 220px;" onchange="location = this.value;">
+      {% for sc in all_classes %}
+        <option value="{% url 'dashboard:class_dashboard' sc.id %}" {% if sc.id == school_class.id %}selected{% endif %}>
+          {{ sc.display_name }}
+        </option>
+      {% endfor %}
+    </select>
+
+    <a href="{% url 'attendance:take_attendance' %}?class_id={{ school_class.id }}" class="btn btn-primary btn-sm">
+      Take Attendance
+    </a>
+  </div>
+</div>
+
+<!-- Bento 3 Pillars: Fee, Exam, Attendance -->
+<div class="bento-grid">
+  <!-- PILLAR 1: Attendance Bento Card -->
+  <div class="bento-card col-4 col-md-12">
+    <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1rem;">
+      <span class="stat-icon-wrapper bg-pastel-sage">📅</span>
+      <div>
+        <h3 style="font-size: 1.15rem;">Attendance Performance</h3>
+        <p style="font-size: 0.78rem; color: var(--text-muted);">Daily &amp; Monthly Trends</p>
+      </div>
+    </div>
+
+    <!-- Today's Status Box -->
+    <div style="background: var(--bg-subtle); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); margin-bottom: 1rem;">
+      <span style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Today's Session</span>
+      {% if today_session %}
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.4rem;">
+          <span style="font-size: 1.6rem; font-weight: 800; color: var(--sage-primary);">{{ today_session.attendance_rate }}%</span>
+          <div style="font-size: 0.82rem; text-align: right;">
+            <b style="color: var(--sage-primary);">{{ today_session.present_count }} Present</b><br/>
+            <span style="color: var(--coral-primary);">{{ today_session.absent_count }} Absent</span>
+          </div>
+        </div>
+      {% else %}
+        <p style="font-size: 0.85rem; color: var(--amber-primary); margin-top: 0.4rem; font-weight: 600;">Not marked yet today.</p>
+      {% endif %}
+    </div>
+
+    <div style="margin-top: auto;">
+      <div style="display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 0.5rem;">
+        <span style="color: var(--text-muted);">Monthly Average Rate:</span>
+        <b>{{ avg_att_rate }}%</b>
+      </div>
+      <a href="{% url 'attendance:history' %}?class_id={{ school_class.id }}" class="btn btn-secondary btn-sm" style="width: 100%;">
+        View Attendance History &rarr;
+      </a>
+    </div>
+  </div>
+
+  <!-- PILLAR 2: Fee Bento Card -->
+  <div class="bento-card col-4 col-md-12">
+    <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1rem;">
+      <span class="stat-icon-wrapper bg-pastel-rose">💳</span>
+      <div>
+        <h3 style="font-size: 1.15rem;">Class Fee Status</h3>
+        <p style="font-size: 0.78rem; color: var(--text-muted);">{{ current_due_inst.title|default:"Active Installment" }}</p>
+      </div>
+    </div>
+
+    <!-- Fee Statistics -->
+    <div style="background: var(--bg-subtle); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); margin-bottom: 1rem;">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+        <span style="font-size: 0.8rem; color: var(--text-muted);">Collected:</span>
+        <b style="color: var(--sage-primary);">₹{{ fee_collected|floatformat:0 }} ({{ paid_students.count }} Paid)</b>
+      </div>
+      <div style="display: flex; justify-content: space-between;">
+        <span style="font-size: 0.8rem; color: var(--text-muted);">Pending:</span>
+        <b style="color: var(--coral-primary);">₹{{ fee_pending|floatformat:0 }} ({{ unpaid_students.count }} Pending)</b>
+      </div>
+
+      <!-- Ratio Bar -->
+      <div style="height: 8px; background: var(--bg-surface); border-radius: var(--radius-full); overflow: hidden; display: flex; margin-top: 0.75rem;">
+        {% if paid_students.count or unpaid_students.count %}
+          <div style="width: {% widthratio paid_students.count paid_students.count|add:unpaid_students.count 100 %}%; background: var(--sage-primary);"></div>
+          <div style="width: {% widthratio unpaid_students.count paid_students.count|add:unpaid_students.count 100 %}%; background: var(--coral-primary);"></div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div style="margin-top: auto; display: flex; flex-direction: column; gap: 0.5rem;">
+      <a href="{% url 'fees:fee_defaulters_list' %}?class_id={{ school_class.id }}" class="btn btn-secondary btn-sm" style="width: 100%;">
+        View Defaulters &amp; Records &rarr;
+      </a>
+      <a href="{% url 'fees:download_defaulters_pdf' %}?class_id={{ school_class.id }}" class="btn btn-pastel-rose btn-sm" style="width: 100%;">
+        Download Class Fee PDF
+      </a>
+    </div>
+  </div>
+
+  <!-- PILLAR 3: Exam Performance Bento Card -->
+  <div class="bento-card col-4 col-md-12">
+    <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1rem;">
+      <span class="stat-icon-wrapper bg-pastel-lavender">📊</span>
+      <div>
+        <h3 style="font-size: 1.15rem;">Exam Performance</h3>
+        <p style="font-size: 0.78rem; color: var(--text-muted);">{{ latest_exam.name|default:"Examinations" }}</p>
+      </div>
+    </div>
+
+    {% if exam_stats %}
+      <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem;">
+        {% for es in exam_stats|slice:":4" %}
+          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem; padding: 0.4rem 0.6rem; background: var(--bg-subtle); border-radius: var(--radius-sm);">
+            <span><b>{{ es.subject }}</b></span>
+            <span style="font-weight: 700; color: var(--rose-primary);">Avg: {{ es.avg_marks }} / {{ es.max_marks|floatformat:0 }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">No exam marks published for this class yet.</p>
+    {% endif %}
+
+    <div style="margin-top: auto;">
+      <a href="{% url 'examinations:marks_entry' %}" class="btn btn-secondary btn-sm" style="width: 100%;">
+        Enter / Update Exam Marks &rarr;
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Full Student Roster in this Class -->
+<div class="bento-card col-12" style="margin-top: 1rem;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+    <div>
+      <h3 style="font-size: 1.25rem;">Student Roster ({{ total_students }} Students)</h3>
+      <p style="font-size: 0.82rem; color: var(--text-muted);">Attendance Heatmap, Fee status &amp; Exam reports for each student</p>
+    </div>
+    <a href="{% url 'students:student_create' %}" class="btn btn-primary btn-sm">+ Enroll Student</a>
+  </div>
+
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Roll</th>
+          <th>Student Name</th>
+          <th>Admission No</th>
+          <th>Guardian</th>
+          <th>Vehicle</th>
+          <th>Today Attendance</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for st in students %}
+          <tr>
+            <td><b>{{ st.roll_number|default:"-" }}</b></td>
+            <td>
+              <a href="{% url 'students:student_profile' st.id %}" style="font-weight: 700; color: var(--rose-primary);">
+                {{ st.full_name }}
+              </a>
+            </td>
+            <td>{{ st.admission_number }}</td>
+            <td>{{ st.father_or_guardian_name }}<br/><span style="font-size: 0.75rem; color: var(--text-subtle);">{{ st.guardian_phone }}</span></td>
+            <td>
+              {% if st.vehicle_opted %}
+                <span class="badge bg-pastel-amber" title="{{ st.vehicle_route }}">Bus: Yes</span>
+              {% else %}
+                <span style="font-size: 0.78rem; color: var(--text-subtle);">No</span>
+              {% endif %}
+            </td>
+            <td>
+              {% with status=st.get_today_attendance %}
+                {% if status == 'PRESENT' %}
+                  <span class="badge badge-present">Present</span>
+                {% elif status == 'ABSENT' %}
+                  <span class="badge badge-absent">Absent</span>
+                {% elif status == 'LATE' %}
+                  <span class="badge badge-late">Late</span>
+                {% else %}
+                  <span class="badge" style="background: var(--bg-subtle); color: var(--text-subtle);">Not Marked</span>
+                {% endif %}
+              {% endwith %}
+            </td>
+            <td>
+              <div style="display: flex; gap: 0.4rem;">
+                <a href="{% url 'students:student_profile' st.id %}" class="btn btn-secondary btn-sm" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" title="View Heatmap">
+                  Profile &amp; Heatmap
+                </a>
+                <a href="{% url 'dashboard:student_dashboard_detail' st.id %}" class="btn btn-pastel-rose btn-sm" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" title="Student Dashboard">
+                  Dashboard
+                </a>
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

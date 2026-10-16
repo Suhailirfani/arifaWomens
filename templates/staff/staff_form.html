@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} | Arifa Women's Academy{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+    <div>
+      <span class="badge bg-pastel-lavender" style="margin-bottom: 0.35rem;">STAFF ADMINISTRATION</span>
+      <h1 style="font-size: 1.75rem;">{{ title }}</h1>
+    </div>
+    <a href="{% url 'staff:staff_list' %}" class="btn btn-secondary btn-sm">&larr; Back to Directory</a>
+  </div>
+
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <div class="bento-card" style="margin-bottom: 1.5rem;">
+      <h3 style="font-size: 1.15rem; margin-bottom: 1rem; color: var(--rose-primary);">Staff Profile Details</h3>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem;">
+        <div class="form-group">
+          <label class="form-label">Employee / Staff ID*</label>
+          {{ form.staff_id }}
+          {% if form.staff_id.errors %}<span style="color: var(--coral-primary); font-size: 0.78rem;">{{ form.staff_id.errors }}</span>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Full Name*</label>
+          {{ form.full_name }}
+          {% if form.full_name.errors %}<span style="color: var(--coral-primary); font-size: 0.78rem;">{{ form.full_name.errors }}</span>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Designation*</label>
+          {{ form.designation }}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Department</label>
+          {{ form.department }}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Gender</label>
+          {{ form.gender }}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Joining Date</label>
+          {{ form.joining_date }}
+        </div>
+
+        <div class="form-group" style="grid-column: span 2;">
+          <label class="form-label">Qualifications</label>
+          {{ form.qualification }}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Phone Number*</label>
+          {{ form.phone }}
+          {% if form.phone.errors %}<span style="color: var(--coral-primary); font-size: 0.78rem;">{{ form.phone.errors }}</span>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          {{ form.email }}
+        </div>
+
+        <div class="form-group" style="grid-column: span 2;">
+          <label class="form-label">Address</label>
+          {{ form.address }}
+        </div>
+
+        <div class="form-group" style="grid-column: span 2;">
+          <label class="form-label">Subjects Taught</label>
+          {{ form.subjects_taught }}
+          <span style="font-size: 0.75rem; color: var(--text-muted);">Hold Ctrl (or Cmd) to select multiple subjects.</span>
+        </div>
+
+        <div class="form-group">
+          <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: 700; cursor: pointer; margin-top: 1rem;">
+            {{ form.is_active }} Active Staff Member
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; justify-content: flex-end; gap: 1rem;">
+      <a href="{% url 'staff:staff_list' %}" class="btn btn-secondary">Cancel</a>
+      <button type="submit" class="btn btn-primary btn-lg">Save Staff Record &rarr;</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

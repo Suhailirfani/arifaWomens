@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+
+{% block title %}Office Staff Dashboard | Arifa Women's Academy{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
+  <div>
+    <span class="badge bg-pastel-lavender" style="margin-bottom: 0.4rem;">OFFICE & ADMISSIONS</span>
+    <h1 style="font-size: 1.85rem;">Welcome, {{ user.get_full_name|default:user.username }}</h1>
+    <p style="color: var(--text-muted); font-size: 0.88rem;">Front Office & Financial Administration Portal</p>
+  </div>
+
+  <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+    <a href="{% url 'fees:fee_collect' %}" class="btn btn-primary btn-sm">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+      Collect Fee
+    </a>
+    <a href="{% url 'students:student_create' %}" class="btn btn-secondary btn-sm">
+      + New Admission
+    </a>
+    <a href="{% url 'students:student_bulk_upload' %}" class="btn btn-pastel-sage btn-sm">
+      Excel Bulk Upload
+    </a>
+  </div>
+</div>
+
+<div class="bento-grid">
+  <!-- Metric 1: Total Enrolled -->
+  <a href="{% url 'students:student_list' %}" class="bento-card col-4 col-md-6" style="text-decoration: none; color: inherit; cursor: pointer;" title="Open Students List">
+    <div class="stat-widget">
+      <div class="stat-info">
+        <span class="stat-label" style="display: flex; align-items: center; justify-content: space-between;">Total Admissions <span style="font-size: 0.8rem; color: var(--rose-primary); font-weight: 700;">&rarr;</span></span>
+        <span class="stat-value">{{ total_students }}</span>
+        <span class="stat-subtext">Active enrolled students</span>
+      </div>
+      <div class="stat-icon-wrapper bg-pastel-lavender">📁</div>
+    </div>
+  </a>
+
+  <!-- Metric 2: Total Receipts -->
+  <div class="bento-card col-4 col-md-6">
+    <div class="stat-widget">
+      <div class="stat-info">
+        <span class="stat-label">Fee Receipts Issued</span>
+        <span class="stat-value">{{ total_payments }}</span>
+        <span class="stat-subtext">Verified transactions</span>
+      </div>
+      <div class="stat-icon-wrapper bg-pastel-rose">🧾</div>
+    </div>
+  </div>
+
+  <!-- Metric 3: Active Defaulters -->
+  <div class="bento-card col-4 col-md-12">
+    <div class="stat-widget">
+      <div class="stat-info">
+        <span class="stat-label">Current Dues Pending</span>
+        <span class="stat-value" style="color: var(--coral-primary);">{{ unpaid_count }}</span>
+        <span class="stat-subtext">Students with unpaid active dues</span>
+      </div>
+      <div class="stat-icon-wrapper bg-pastel-amber">⚠️</div>
+    </div>
+    <div style="margin-top: 1rem;">
+      <a href="{% url 'fees:fee_defaulters_list' %}" class="btn btn-secondary btn-sm" style="width: 100%;">
+        View Defaulter List &amp; Export PDF &rarr;
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Two Column Bento: Recent Admissions & Recent Fee Receipts -->
+<div class="bento-grid">
+  <!-- Recent Admissions Table -->
+  <div class="bento-card col-6 col-md-12">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+      <h3 style="font-size: 1.15rem;">Recent Student Registrations</h3>
+      <a href="{% url 'students:student_list' %}" style="font-size: 0.8rem; font-weight: 700; color: var(--rose-primary);">View All &rarr;</a>
+    </div>
+
+    <div class="table-responsive">
+      <table class="custom-table">
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>Class</th>
+            <th>Guardian &amp; Phone</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for st in recent_admissions %}
+            <tr>
+              <td>
+                <a href="{% url 'students:student_profile' st.id %}" style="font-weight: 700;">{{ st.full_name }}</a>
+                <div style="font-size: 0.75rem; color: var(--text-subtle);">{{ st.admission_number }}</div>
+              </td>
+              <td><span class="badge bg-pastel-lavender">{{ st.current_class.display_name }}</span></td>
+              <td>{{ st.father_or_guardian_name }}<br/><span style="font-size: 0.75rem; color: var(--text-subtle);">{{ st.guardian_phone }}</span></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Recent Payments Table -->
+  <div class="bento-card col-6 col-md-12">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+      <h3 style="font-size: 1.15rem;">Recent Fee Collections</h3>
+      <a href="{% url 'fees:fee_dashboard' %}" style="font-size: 0.8rem; font-weight: 700; color: var(--sage-primary);">Fee Portal &rarr;</a>
+    </div>
+
+    <div class="table-responsive">
+      <table class="custom-table">
+        <thead>
+          <tr>
+            <th>Receipt &amp; Date</th>
+            <th>Student</th>
+            <th>Amount Paid</th>
+            <th>Receipt</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for pay in recent_payments %}
+            <tr>
+              <td>
+                <b>{{ pay.receipt_number }}</b>
+                <div style="font-size: 0.75rem; color: var(--text-subtle);">{{ pay.payment_date|date:"d M Y" }}</div>
+              </td>
+              <td>{{ pay.student.full_name }}</td>
+              <td><span style="color: var(--sage-primary); font-weight: 700;">₹{{ pay.amount_paid }}</span></td>
+              <td>
+                <a href="{% url 'fees:receipt_detail' pay.receipt_number %}" class="btn btn-secondary btn-sm" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">
+                  Receipt
+                </a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

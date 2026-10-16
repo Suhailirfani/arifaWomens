@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+
+{% block title %}Examination Marks Entry | Arifa Women's Academy{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+  <div>
+    <span class="badge bg-pastel-rose" style="margin-bottom: 0.35rem;">MARKS RECORDING</span>
+    <h1 style="font-size: 1.85rem;">Examination Marks Entry</h1>
+    <p style="color: var(--text-muted); font-size: 0.88rem;">
+      Exam: <b>{{ selected_schedule.exam.name }}</b> &bull; Class: <b>{{ selected_schedule.school_class.display_name }}</b> &bull; Subject: <b>{{ selected_schedule.subject.name }}</b>
+    </p>
+  </div>
+
+  <a href="{% url 'examinations:exam_list' %}" class="btn btn-secondary btn-sm">&larr; Back to Exams</a>
+</div>
+
+<!-- Schedule Selector Bar -->
+<div class="bento-card" style="padding: 1.25rem; margin-bottom: 1.5rem;">
+  <form method="get" style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
+    <div class="form-group" style="margin-bottom: 0; min-width: 320px; flex: 1;">
+      <label class="form-label">Select Exam Schedule (Exam &bull; Class &bull; Subject)</label>
+      <select name="schedule_id" class="form-select" onchange="this.form.submit()">
+        {% for s in schedules %}
+          <option value="{{ s.id }}" {% if selected_schedule.id == s.id %}selected{% endif %}>
+            {{ s.exam.name }} &bull; {{ s.school_class.display_name }} &bull; {{ s.subject.name }} (Max: {{ s.max_marks|floatformat:0 }})
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div>
+      <button type="submit" class="btn btn-primary">Load Sheet</button>
+    </div>
+  </form>
+</div>
+
+<!-- Marks Entry Form Table -->
+<form method="post" action="{% url 'examinations:marks_entry' %}">
+  {% csrf_token %}
+  <input type="hidden" name="schedule_id" value="{{ selected_schedule.id }}">
+
+  <div class="bento-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+      <h3 style="font-size: 1.2rem;">Class Student Roster (Max Marks: {{ selected_schedule.max_marks|floatformat:0 }}, Pass: {{ selected_schedule.pass_marks|floatformat:0 }})</h3>
+      <span class="badge bg-pastel-lavender">{{ student_entries|length }} Students</span>
+    </div>
+
+    <div class="table-responsive">
+      <table class="custom-table">
+        <thead>
+          <tr>
+            <th>Roll</th>
+            <th>Adm No</th>
+            <th>Student Name</th>
+            <th style="width: 140px;">Marks Scored</th>
+            <th style="width: 100px; text-align: center;">Absent?</th>
+            <th>Grade</th>
+            <th>Remarks</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for entry in student_entries %}
+            <tr>
+              <td><b>{{ entry.student.roll_number|default:"-" }}</b></td>
+              <td>{{ entry.student.admission_number }}</td>
+              <td>
+                <a href="{% url 'students:student_profile' entry.student.id %}" target="_blank" style="font-weight: 700; color: var(--rose-primary);">
+                  {{ entry.student.full_name }}
+                </a>
+              </td>
+              <td>
+                <input
+                  type="number"
+                  step="0.5"
+                  max="{{ selected_schedule.max_marks }}"
+                  min="0"
+                  name="marks_{{ entry.student.id }}"
+                  value="{{ entry.marks_val }}"
+                  class="form-control"
+                  style="font-weight: 700; padding: 0.4rem 0.6rem;"
+                  placeholder="0 - {{ selected_schedule.max_marks|floatformat:0 }}"
+                >
+              </td>
+              <td style="text-align: center;">
+                <input
+                  type="checkbox"
+                  name="absent_{{ entry.student.id }}"
+                  {% if entry.is_absent %}checked{% endif %}
+                  style="width: 18px; height: 18px; cursor: pointer;"
+                >
+              </td>
+              <td>
+                {% if entry.mark_obj %}
+                  <span class="badge {% if entry.mark_obj.percentage >= 80 %}bg-pastel-sage{% elif entry.mark_obj.percentage >= 60 %}bg-pastel-lavender{% else %}bg-pastel-amber{% endif %}">
+                    {{ entry.mark_obj.letter_grade }}
+                  </span>
+                {% else %}
+                  -
+                {% endif %}
+              </td>
+              <td>
+                <input
+                  type="text"
+                  name="remarks_{{ entry.student.id }}"
+                  value="{{ entry.remarks }}"
+                  class="form-control"
+                  style="padding: 0.4rem 0.6rem; font-size: 0.82rem;"
+                  placeholder="e.g. Good, Excellent"
+                >
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                No active students in this class.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end; gap: 1rem;">
+      <a href="{% url 'examinations:exam_list' %}" class="btn btn-secondary">Cancel</a>
+      <button type="submit" class="btn btn-primary btn-lg">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+        Save &amp; Update Marks
+      </button>
+    </div>
+  </div>
+</form>
+{% endblock %}

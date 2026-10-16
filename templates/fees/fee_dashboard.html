@@ -1,0 +1,185 @@
+{% extends 'base.html' %}
+
+{% block title %}Fee Dashboard | Arifa Women's Academy{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
+  <div>
+    <span class="badge bg-pastel-amber" style="margin-bottom: 0.35rem;">FINANCIAL OVERVIEW</span>
+    <h1 style="font-size: 1.85rem;">Fee Dashboard</h1>
+    <p style="color: var(--text-muted); font-size: 0.88rem;">Installment-wise Course Fees &bull; Monthly Transportation (Vehicle) Fees</p>
+  </div>
+
+  <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+    <a href="{% url 'fees:fee_master' %}" class="btn btn-secondary btn-sm" title="Setup Fee Structures, Installments & Categories">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+      Fee Master &amp; Setup
+    </a>
+    <a href="{% url 'fees:fee_collect' %}" class="btn btn-primary btn-sm">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+      + Collect Fee Payment
+    </a>
+    <a href="{% url 'fees:fee_defaulters_list' %}" class="btn btn-pastel-rose btn-sm">
+      Who Paid vs Defaulters List &rarr;
+    </a>
+  </div>
+</div>
+
+<!-- Bento KPI Cards -->
+<div class="bento-grid">
+  <!-- Card 1: Total Collected -->
+  <div class="bento-card col-3 col-md-6">
+    <div class="stat-widget">
+      <div class="stat-info">
+        <span class="stat-label">Total Collections</span>
+        <span class="stat-value" style="color: var(--sage-primary);">₹{{ total_collected|floatformat:0 }}</span>
+        <span class="stat-subtext">Cumulative receipts</span>
+      </div>
+      <div class="stat-icon-wrapper bg-pastel-sage">💰</div>
+    </div>
+  </div>
+
+  <!-- Card 2: This Month Collections -->
+  <div class="bento-card col-3 col-md-6">
+    <div class="stat-widget">
+      <div class="stat-info">
+        <span class="stat-label">This Month Collections</span>
+        <span class="stat-value">₹{{ this_month_collected|floatformat:0 }}</span>
+        <span class="stat-subtext">Current billing cycle</span>
+      </div>
+      <div class="stat-icon-wrapper bg-pastel-sky">📅</div>
+    </div>
+  </div>
+
+  <!-- Card 3: Active Defaulters -->
+  <div class="bento-card col-3 col-md-6">
+    <div class="stat-widget">
+      <div class="stat-info">
+        <span class="stat-label">Current Due Defaulters</span>
+        <span class="stat-value" style="color: var(--coral-primary);">{{ unpaid_count }}</span>
+        <span class="stat-subtext">Students with unpaid dues</span>
+      </div>
+      <div class="stat-icon-wrapper bg-pastel-rose">⚠️</div>
+    </div>
+  </div>
+
+  <!-- Card 4: Outstanding Amount -->
+  <div class="bento-card col-3 col-md-6">
+    <div class="stat-widget">
+      <div class="stat-info">
+        <span class="stat-label">Pending Dues Amount</span>
+        <span class="stat-value" style="color: var(--coral-primary);">₹{{ total_due_amount|floatformat:0 }}</span>
+        <span class="stat-subtext">Active installment target</span>
+      </div>
+      <div class="stat-icon-wrapper bg-pastel-amber">⌛</div>
+    </div>
+  </div>
+</div>
+
+<!-- Active Due Installment Status Banner & PDF Shortcut -->
+<div class="bento-card col-12" style="margin-bottom: 2rem; background: linear-gradient(135deg, var(--bg-surface), var(--rose-pastel)); border-color: rgba(226, 91, 120, 0.3);">
+  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <span class="badge bg-pastel-rose" style="margin-bottom: 0.35rem;">ACTIVE DUE INSTALLMENT TRACKER</span>
+      <h3 style="font-size: 1.3rem;">{{ current_installment.title }}</h3>
+      <p style="font-size: 0.85rem; color: var(--text-muted);">
+        Due Date: <b>{{ current_installment.due_date|date:"d M Y" }}</b> &bull; Installment Amount: <b>₹{{ current_installment.amount }}</b>
+      </p>
+    </div>
+
+    <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+      <a href="{% url 'fees:fee_master' %}" class="btn btn-secondary">
+        Manage in Fee Master &rarr;
+      </a>
+      <a href="{% url 'fees:fee_defaulters_list' %}?installment_id={{ current_installment.id }}" class="btn btn-secondary">
+        Inspect Paid vs Unpaid List
+      </a>
+      <a href="{% url 'fees:download_defaulters_pdf' %}?installment_id={{ current_installment.id }}" class="btn btn-primary">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        Download Defaulters PDF
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Class-wise Fee Status & Recent Payments -->
+<div class="bento-grid">
+  <!-- Class Collections Table -->
+  <div class="bento-card col-6 col-md-12">
+    <h3 style="font-size: 1.15rem; margin-bottom: 1rem;">Class-Wise Fee Collection Breakdown</h3>
+    <div class="table-responsive">
+      <table class="custom-table">
+        <thead>
+          <tr>
+            <th>Class &amp; Stream</th>
+            <th>Enrolled</th>
+            <th>Total Collected</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for cf in class_fee_stats %}
+            <tr>
+              <td><b>{{ cf.school_class.display_name }}</b></td>
+              <td>{{ cf.students_count }}</td>
+              <td><span style="color: var(--sage-primary); font-weight: 700;">₹{{ cf.total_collected|floatformat:0 }}</span></td>
+              <td>
+                <a href="{% url 'fees:fee_defaulters_list' %}?class_id={{ cf.school_class.id }}" class="btn btn-secondary btn-sm" style="font-size: 0.75rem;">
+                  Defaulters &rarr;
+                </a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Recent Payments List -->
+  <div class="bento-card col-6 col-md-12">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+      <h3 style="font-size: 1.15rem;">Recent Fee Transactions</h3>
+      <a href="{% url 'fees:fee_collect' %}" class="btn btn-primary btn-sm">+ New Receipt</a>
+    </div>
+
+    <div class="table-responsive">
+      <table class="custom-table">
+        <thead>
+          <tr>
+            <th>Receipt</th>
+            <th>Student</th>
+            <th>Amount</th>
+            <th>Mode</th>
+            <th>Print</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in recent_payments %}
+            <tr>
+              <td>
+                <b>{{ p.receipt_number }}</b>
+                <div style="font-size: 0.72rem; color: var(--text-subtle);">{{ p.payment_date|date:"d M Y" }}</div>
+              </td>
+              <td>
+                {{ p.student.full_name }}
+                <div style="font-size: 0.72rem; color: var(--text-subtle);">{{ p.student.current_class.display_name }}</div>
+              </td>
+              <td><b style="color: var(--sage-primary);">₹{{ p.amount_paid }}</b></td>
+              <td><span class="badge bg-pastel-lavender">{{ p.get_payment_mode_display }}</span></td>
+              <td>
+                <a href="{% url 'fees:receipt_pdf' p.receipt_number %}" class="btn btn-secondary btn-sm" style="padding: 0.2rem 0.5rem; font-size: 0.72rem;">
+                  PDF
+                </a>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="5" style="text-align: center; color: var(--text-muted);">No payments recorded yet.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,368 @@
+{% extends 'base.html' %}
+
+{% block title %}Student Register | Arifa Women's Academy{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
+  <div>
+    <span class="badge bg-pastel-rose" style="margin-bottom: 0.4rem;">ENROLMENT &amp; DIRECTORY</span>
+    <h1 style="font-size: 1.85rem;">Student Register</h1>
+    <p style="color: var(--text-muted); font-size: 0.88rem;">Total Active Students: <b id="student-count-badge">{{ total_count }}</b></p>
+  </div>
+
+  <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+    <a href="{% url 'students:student_create' %}" class="btn btn-primary btn-sm">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+      + Single Student Entry
+    </a>
+    <a href="{% url 'students:student_bulk_upload' %}" class="btn btn-secondary btn-sm">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+      Bulk Excel Upload
+    </a>
+    <a href="{% url 'students:download_template' %}" class="btn btn-pastel-sage btn-sm" title="Download Excel Template">
+      Download Template (.xlsx)
+    </a>
+  </div>
+</div>
+
+<!-- Search & Filter Card -->
+<div class="bento-card" style="padding: 1.25rem; margin-bottom: 1.5rem;">
+  <form id="student-filter-form" method="get" action="{% url 'students:student_list' %}" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; align-items: flex-end;">
+    <div class="form-group" style="margin-bottom: 0;">
+      <label class="form-label" style="display: flex; justify-content: space-between; align-items: center;">
+        <span>Search Student</span>
+        <span id="search-indicator" style="display: none; font-size: 0.75rem; color: var(--rose-primary); font-weight: 600; align-items: center; gap: 0.35rem;">
+          <svg style="animation: spin 1s linear infinite;" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle><path d="M12 2a10 10 0 0 1 10 10"></path></svg>
+          Filtering...
+        </span>
+      </label>
+      <div style="position: relative;">
+        <input type="text" id="student-search-input" name="q" value="{{ query }}" class="form-control" placeholder="Search by name, adm no, phone..." autocomplete="off" style="padding-right: 2.2rem;">
+        <button type="button" id="clear-search-btn" style="display: {% if query %}flex{% else %}none{% endif %}; position: absolute; right: 0.6rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 0.2rem; align-items: center; justify-content: center; font-size: 1.2rem; line-height: 1; border-radius: 50%; width: 22px; height: 22px;" title="Clear Search">&times;</button>
+      </div>
+    </div>
+
+    <div class="form-group" style="margin-bottom: 0;">
+      <label class="form-label">Filter by Class</label>
+      <select id="student-class-select" name="class_id" class="form-select">
+        <option value="">All Classes &amp; Streams</option>
+        {% for sc in school_classes %}
+          <option value="{{ sc.id }}" {% if class_id == sc.id|stringformat:"s" %}selected{% endif %}>
+            {{ sc.display_name }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="form-group" style="margin-bottom: 0;">
+      <label class="form-label">Status</label>
+      <select id="student-status-select" name="status" class="form-select">
+        <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active Enrolled</option>
+        <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive / Withdrawn</option>
+        <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All Records</option>
+      </select>
+    </div>
+
+    <div style="display: flex; gap: 0.5rem;">
+      <button type="submit" class="btn btn-primary" style="flex: 1;" title="Filter now">Filter</button>
+      <a href="{% url 'students:student_list' %}" id="reset-filter-btn" class="btn btn-secondary">Reset</a>
+    </div>
+  </form>
+</div>
+
+<!-- Students Roster Table -->
+<div class="bento-card" id="student-table-card" style="transition: opacity 0.15s ease;">
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Adm No</th>
+          <th>Roll</th>
+          <th>Student Full Name</th>
+          <th>Class &amp; Stream</th>
+          <th>Guardian &amp; Contact</th>
+          <th>Vehicle Opted</th>
+          <th>Today Attendance</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for st in page_obj %}
+          <tr>
+            <td><b>{{ st.admission_number }}</b></td>
+            <td>{{ st.roll_number|default:"-" }}</td>
+            <td>
+              <a href="{% url 'students:student_profile' st.id %}" style="font-weight: 700; color: var(--rose-primary);">
+                {{ st.full_name }}
+              </a>
+              <div style="font-size: 0.75rem; color: var(--text-subtle);">DOB: {{ st.date_of_birth|date:"d M Y"|default:"-" }}</div>
+            </td>
+            <td>
+              <span class="badge {% if st.current_class.grade.level_category == 'higher_secondary' %}bg-pastel-lavender{% else %}bg-pastel-sage{% endif %}">
+                {{ st.current_class.display_name }}
+              </span>
+            </td>
+            <td>
+              {{ st.father_or_guardian_name }}<br/>
+              <span style="font-size: 0.78rem; color: var(--text-muted);">📞 {{ st.guardian_phone }}</span>
+            </td>
+            <td>
+              {% if st.vehicle_opted %}
+                <span class="badge bg-pastel-amber" title="{{ st.vehicle_route }}">Yes ({{ st.vehicle_route|truncatechars:15 }})</span>
+              {% else %}
+                <span style="font-size: 0.8rem; color: var(--text-subtle);">No</span>
+              {% endif %}
+            </td>
+            <td>
+              {% with status=st.get_today_attendance %}
+                {% if status == 'PRESENT' %}
+                  <span class="badge badge-present">Present</span>
+                {% elif status == 'ABSENT' %}
+                  <span class="badge badge-absent">Absent</span>
+                {% elif status == 'LATE' %}
+                  <span class="badge badge-late">Late</span>
+                {% else %}
+                  <span class="badge" style="background: var(--bg-subtle); color: var(--text-subtle);">Not Marked</span>
+                {% endif %}
+              {% endwith %}
+            </td>
+            <td>
+              <div style="display: flex; gap: 0.4rem;">
+                <a href="{% url 'students:student_profile' st.id %}" class="btn btn-secondary btn-sm" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" title="Profile & Heatmap">
+                  View Heatmap
+                </a>
+                <a href="{% url 'students:student_edit' st.id %}" class="btn btn-secondary btn-sm" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" title="Edit">
+                  Edit
+                </a>
+              </div>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="8" style="text-align: center; padding: 3rem 1.5rem; color: var(--text-muted);">
+              <div style="font-size: 2.2rem; margin-bottom: 0.5rem;">🔍</div>
+              <div style="font-weight: 700; font-size: 1.1rem; color: var(--text-main); margin-bottom: 0.25rem;">No student records found</div>
+              <p style="font-size: 0.85rem; margin-bottom: 1.25rem; color: var(--text-muted);">
+                {% if query %}
+                  No students matched "<b>{{ query }}</b>".
+                {% else %}
+                  No students match the current filter selection.
+                {% endif %}
+              </p>
+              <button type="button" id="empty-clear-btn" class="btn btn-secondary btn-sm">Clear Filters</button>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  {% if page_obj.has_other_pages %}
+    <div style="display: flex; justify-content: center; gap: 0.5rem; margin-top: 1.5rem;">
+      {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}&q={{ query }}&class_id={{ class_id }}&status={{ status_filter }}" class="btn btn-secondary btn-sm pagination-link">&larr; Previous</a>
+      {% endif %}
+      <span class="btn btn-secondary btn-sm" style="cursor: default;">
+        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+      </span>
+      {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}&q={{ query }}&class_id={{ class_id }}&status={{ status_filter }}" class="btn btn-secondary btn-sm pagination-link">Next &rarr;</a>
+      {% endif %}
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<style>
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+</style>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const form = document.getElementById('student-filter-form');
+  const searchInput = document.getElementById('student-search-input');
+  const classSelect = document.getElementById('student-class-select');
+  const statusSelect = document.getElementById('student-status-select');
+  const clearBtn = document.getElementById('clear-search-btn');
+  const tableCard = document.getElementById('student-table-card');
+  const countBadge = document.getElementById('student-count-badge');
+  const searchIndicator = document.getElementById('search-indicator');
+  const resetBtn = document.getElementById('reset-filter-btn');
+
+  let debounceTimer = null;
+  let activeAbortCtrl = null;
+
+  function performFilter(targetUrl = null) {
+    if (activeAbortCtrl) {
+      activeAbortCtrl.abort();
+    }
+    activeAbortCtrl = new AbortController();
+
+    if (searchIndicator) searchIndicator.style.display = 'inline-flex';
+    if (tableCard) tableCard.style.opacity = '0.55';
+
+    let fetchUrl = targetUrl;
+    if (!fetchUrl) {
+      const formData = new FormData(form);
+      const params = new URLSearchParams();
+      for (const [k, v] of formData.entries()) {
+        const val = v.trim();
+        if (val) {
+          params.set(k, val);
+        }
+      }
+      fetchUrl = form.action + (params.toString() ? '?' + params.toString() : '');
+    }
+
+    fetch(fetchUrl, {
+      signal: activeAbortCtrl.signal,
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(res => {
+      if (!res.ok) throw new Error('Network error: ' + res.status);
+      return res.text();
+    })
+    .then(html => {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+
+      const newTableCard = doc.getElementById('student-table-card');
+      const newCount = doc.getElementById('student-count-badge');
+
+      if (newTableCard && tableCard) {
+        tableCard.innerHTML = newTableCard.innerHTML;
+        bindInteractiveElements();
+      }
+      if (newCount && countBadge) {
+        countBadge.innerHTML = newCount.innerHTML;
+      }
+
+      // Update browser URL without reloading page
+      window.history.replaceState({ path: fetchUrl }, '', fetchUrl);
+    })
+    .catch(err => {
+      if (err.name !== 'AbortError') {
+        console.error('Auto filter fetch failed, falling back to form submit:', err);
+        form.submit();
+      }
+    })
+    .finally(() => {
+      if (searchIndicator) searchIndicator.style.display = 'none';
+      if (tableCard) tableCard.style.opacity = '1';
+    });
+  }
+
+  function bindInteractiveElements() {
+    if (!tableCard) return;
+
+    // Pagination AJAX links
+    const paginationLinks = tableCard.querySelectorAll('.pagination-link');
+    paginationLinks.forEach(link => {
+      link.addEventListener('click', function(e) {
+        e.preventDefault();
+        performFilter(this.getAttribute('href'));
+        tableCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+
+    // Empty state clear button
+    const emptyClearBtn = tableCard.querySelector('#empty-clear-btn');
+    if (emptyClearBtn) {
+      emptyClearBtn.addEventListener('click', function() {
+        if (resetBtn) resetBtn.click();
+      });
+    }
+  }
+
+  // 1. Debounced live search on typing in Search Student box (no button click needed!)
+  if (searchInput) {
+    searchInput.addEventListener('input', function() {
+      const hasText = this.value.trim().length > 0;
+      if (clearBtn) clearBtn.style.display = hasText ? 'flex' : 'none';
+
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        performFilter();
+      }, 280);
+    });
+
+    searchInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        clearTimeout(debounceTimer);
+        performFilter();
+      }
+    });
+  }
+
+  // 2. Clear search button (instantly clears and refilters)
+  if (clearBtn) {
+    clearBtn.addEventListener('click', function() {
+      if (searchInput) {
+        searchInput.value = '';
+        searchInput.focus();
+      }
+      clearBtn.style.display = 'none';
+      clearTimeout(debounceTimer);
+      performFilter();
+    });
+  }
+
+  // 3. Dropdowns auto-filter immediately on change (no button click needed!)
+  if (classSelect) {
+    classSelect.addEventListener('change', function() {
+      clearTimeout(debounceTimer);
+      performFilter();
+    });
+  }
+
+  if (statusSelect) {
+    statusSelect.addEventListener('change', function() {
+      clearTimeout(debounceTimer);
+      performFilter();
+    });
+  }
+
+  // 4. Form submit button (if manually clicked or enter pressed)
+  if (form) {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      clearTimeout(debounceTimer);
+      performFilter();
+    });
+  }
+
+  // 5. Reset button (clears inputs & restores full list without full page reload)
+  if (resetBtn) {
+    resetBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      if (searchInput) searchInput.value = '';
+      if (classSelect) classSelect.value = '';
+      if (statusSelect) statusSelect.value = 'active';
+      if (clearBtn) clearBtn.style.display = 'none';
+      clearTimeout(debounceTimer);
+      performFilter(form.action);
+    });
+  }
+
+  // 6. Handle browser Back/Forward navigation
+  window.addEventListener('popstate', function() {
+    const params = new URLSearchParams(window.location.search);
+    if (searchInput) {
+      searchInput.value = params.get('q') || '';
+      if (clearBtn) clearBtn.style.display = searchInput.value ? 'flex' : 'none';
+    }
+    if (classSelect) classSelect.value = params.get('class_id') || '';
+    if (statusSelect) statusSelect.value = params.get('status') || 'active';
+    performFilter(window.location.href);
+  });
+
+  // Initial binding for interactive table elements
+  bindInteractiveElements();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,273 @@
+{% extends 'base.html' %}
+
+{% block title %}Staff Register | Arifa Women's Academy{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
+  <div>
+    <span class="badge bg-pastel-lavender" style="margin-bottom: 0.4rem;">FACULTY &amp; STAFF DIRECTORY</span>
+    <h1 style="font-size: 1.85rem;">Staff Register</h1>
+    <p style="color: var(--text-muted); font-size: 0.88rem;">Total Faculty &amp; Personnel: <b id="staff-count-badge">{{ total_count }}</b></p>
+  </div>
+
+  <a href="{% url 'staff:staff_create' %}" class="btn btn-primary btn-sm">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+    + Add New Staff
+  </a>
+</div>
+
+<!-- Search & Filter Card -->
+<div class="bento-card" style="padding: 1.25rem; margin-bottom: 1.5rem;">
+  <form id="staff-filter-form" method="get" action="{% url 'staff:staff_list' %}" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; align-items: flex-end;">
+    <div class="form-group" style="margin-bottom: 0;">
+      <label class="form-label" style="display: flex; justify-content: space-between; align-items: center;">
+        <span>Search Staff</span>
+        <span id="staff-search-indicator" style="display: none; font-size: 0.75rem; color: var(--rose-primary); font-weight: 600; align-items: center; gap: 0.35rem;">
+          <svg style="animation: spin 1s linear infinite;" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle><path d="M12 2a10 10 0 0 1 10 10"></path></svg>
+          Filtering...
+        </span>
+      </label>
+      <div style="position: relative;">
+        <input type="text" id="staff-search-input" name="q" value="{{ query }}" class="form-control" placeholder="Search by name, ID, phone, role..." autocomplete="off" style="padding-right: 2.2rem;">
+        <button type="button" id="clear-staff-search-btn" style="display: {% if query %}flex{% else %}none{% endif %}; position: absolute; right: 0.6rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 0.2rem; align-items: center; justify-content: center; font-size: 1.2rem; line-height: 1; border-radius: 50%; width: 22px; height: 22px;" title="Clear Search">&times;</button>
+      </div>
+    </div>
+
+    <div class="form-group" style="margin-bottom: 0;">
+      <label class="form-label">Department</label>
+      <select id="staff-dept-select" name="dept" class="form-select">
+        <option value="">All Departments</option>
+        {% for d in departments %}
+          <option value="{{ d }}" {% if selected_dept == d %}selected{% endif %}>{{ d }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div style="display: flex; gap: 0.5rem;">
+      <button type="submit" class="btn btn-primary" style="flex: 1;">Filter</button>
+      <a href="{% url 'staff:staff_list' %}" id="reset-staff-filter-btn" class="btn btn-secondary">Reset</a>
+    </div>
+  </form>
+</div>
+
+<!-- Staff Grid / Table -->
+<div class="bento-card" id="staff-table-card" style="transition: opacity 0.15s ease;">
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Staff ID</th>
+          <th>Full Name</th>
+          <th>Designation &amp; Dept</th>
+          <th>Qualifications</th>
+          <th>Contact &amp; Email</th>
+          <th>Managed Class</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for sm in staff_members %}
+          <tr>
+            <td><b>{{ sm.staff_id }}</b></td>
+            <td>
+              <a href="{% url 'staff:staff_profile' sm.id %}" style="font-weight: 700; color: var(--rose-primary);">
+                {{ sm.full_name }}
+              </a>
+              <div style="font-size: 0.75rem; color: var(--text-subtle);">Joined: {{ sm.joining_date|date:"d M Y"|default:"-" }}</div>
+            </td>
+            <td>
+              <b>{{ sm.designation }}</b><br/>
+              <span class="badge bg-pastel-lavender" style="font-size: 0.72rem;">{{ sm.department|default:"Academics" }}</span>
+            </td>
+            <td style="font-size: 0.82rem;">{{ sm.qualification|default:"-" }}</td>
+            <td>
+              📞 {{ sm.phone }}<br/>
+              <span style="font-size: 0.75rem; color: var(--text-subtle);">✉️ {{ sm.email|default:"-" }}</span>
+            </td>
+            <td>
+              {% for mc in sm.managed_classes.all %}
+                <span class="badge bg-pastel-sage">{{ mc.display_name }}</span>
+              {% empty %}
+                <span style="font-size: 0.8rem; color: var(--text-subtle);">-</span>
+              {% endfor %}
+            </td>
+            <td>
+              <div style="display: flex; gap: 0.4rem;">
+                <a href="{% url 'staff:staff_profile' sm.id %}" class="btn btn-secondary btn-sm" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;">Profile</a>
+                <a href="{% url 'staff:staff_edit' sm.id %}" class="btn btn-secondary btn-sm" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;">Edit</a>
+              </div>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="7" style="text-align: center; padding: 2.5rem; color: var(--text-muted);">
+              <div style="font-size: 2.2rem; margin-bottom: 0.5rem;">🔍</div>
+              <div style="font-weight: 700; font-size: 1.1rem; color: var(--text-main); margin-bottom: 0.25rem;">No staff members found</div>
+              <p style="font-size: 0.85rem; margin-bottom: 1.25rem; color: var(--text-muted);">No records matched your search query or department.</p>
+              <button type="button" id="empty-staff-clear-btn" class="btn btn-secondary btn-sm">Clear Filter</button>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<style>
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+</style>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const form = document.getElementById('staff-filter-form');
+  const searchInput = document.getElementById('staff-search-input');
+  const deptSelect = document.getElementById('staff-dept-select');
+  const clearBtn = document.getElementById('clear-staff-search-btn');
+  const tableCard = document.getElementById('staff-table-card');
+  const countBadge = document.getElementById('staff-count-badge');
+  const indicator = document.getElementById('staff-search-indicator');
+  const resetBtn = document.getElementById('reset-staff-filter-btn');
+
+  let debounceTimer = null;
+  let activeAbortCtrl = null;
+
+  function performFilter(targetUrl = null) {
+    if (activeAbortCtrl) activeAbortCtrl.abort();
+    activeAbortCtrl = new AbortController();
+
+    if (indicator) indicator.style.display = 'inline-flex';
+    if (tableCard) tableCard.style.opacity = '0.55';
+
+    let fetchUrl = targetUrl;
+    if (!fetchUrl) {
+      const formData = new FormData(form);
+      const params = new URLSearchParams();
+      for (const [k, v] of formData.entries()) {
+        const val = v.trim();
+        if (val) params.set(k, val);
+      }
+      fetchUrl = form.action + (params.toString() ? '?' + params.toString() : '');
+    }
+
+    fetch(fetchUrl, {
+      signal: activeAbortCtrl.signal,
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(res => {
+      if (!res.ok) throw new Error('Network error: ' + res.status);
+      return res.text();
+    })
+    .then(html => {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+
+      const newTableCard = doc.getElementById('staff-table-card');
+      const newCount = doc.getElementById('staff-count-badge');
+
+      if (newTableCard && tableCard) {
+        tableCard.innerHTML = newTableCard.innerHTML;
+        bindInteractiveElements();
+      }
+      if (newCount && countBadge) {
+        countBadge.innerHTML = newCount.innerHTML;
+      }
+
+      window.history.replaceState({ path: fetchUrl }, '', fetchUrl);
+    })
+    .catch(err => {
+      if (err.name !== 'AbortError') {
+        console.error('Staff filter fetch error:', err);
+        form.submit();
+      }
+    })
+    .finally(() => {
+      if (indicator) indicator.style.display = 'none';
+      if (tableCard) tableCard.style.opacity = '1';
+    });
+  }
+
+  function bindInteractiveElements() {
+    if (!tableCard) return;
+    const emptyClearBtn = tableCard.querySelector('#empty-staff-clear-btn');
+    if (emptyClearBtn) {
+      emptyClearBtn.addEventListener('click', function() {
+        if (resetBtn) resetBtn.click();
+      });
+    }
+  }
+
+  if (searchInput) {
+    searchInput.addEventListener('input', function() {
+      const hasText = this.value.trim().length > 0;
+      if (clearBtn) clearBtn.style.display = hasText ? 'flex' : 'none';
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        performFilter();
+      }, 280);
+    });
+
+    searchInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        clearTimeout(debounceTimer);
+        performFilter();
+      }
+    });
+  }
+
+  if (clearBtn) {
+    clearBtn.addEventListener('click', function() {
+      if (searchInput) {
+        searchInput.value = '';
+        searchInput.focus();
+      }
+      clearBtn.style.display = 'none';
+      clearTimeout(debounceTimer);
+      performFilter();
+    });
+  }
+
+  if (deptSelect) {
+    deptSelect.addEventListener('change', function() {
+      clearTimeout(debounceTimer);
+      performFilter();
+    });
+  }
+
+  if (form) {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      clearTimeout(debounceTimer);
+      performFilter();
+    });
+  }
+
+  if (resetBtn) {
+    resetBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      if (searchInput) searchInput.value = '';
+      if (deptSelect) deptSelect.value = '';
+      if (clearBtn) clearBtn.style.display = 'none';
+      clearTimeout(debounceTimer);
+      performFilter(form.action);
+    });
+  }
+
+  window.addEventListener('popstate', function() {
+    const params = new URLSearchParams(window.location.search);
+    if (searchInput) {
+      searchInput.value = params.get('q') || '';
+      if (clearBtn) clearBtn.style.display = searchInput.value ? 'flex' : 'none';
+    }
+    if (deptSelect) deptSelect.value = params.get('dept') || '';
+    performFilter(window.location.href);
+  });
+
+  bindInteractiveElements();
+});
+</script>
+{% endblock %}

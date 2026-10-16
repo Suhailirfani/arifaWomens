@@ -1,0 +1,412 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} | Arifa Women's Academy{% endblock %}
+
+{% block content %}
+<div style="max-width: 1050px; margin: 0 auto;">
+  <!-- Header & Back Button -->
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.75rem;">
+    <div>
+      <span class="badge bg-pastel-amber" style="margin-bottom: 0.35rem;">FEE STRUCTURE &amp; INSTALLMENT PLANNER</span>
+      <h1 style="font-size: 1.85rem;">{{ title }}</h1>
+      <p style="color: var(--text-muted); font-size: 0.88rem;">Set annual fee amount, break it down into installments, and schedule automated due dates</p>
+    </div>
+    <a href="{% url 'fees:fee_master' %}" class="btn btn-secondary btn-sm">&larr; Back to Fee Master</a>
+  </div>
+
+  <form method="post" id="fee-builder-form">
+    {% csrf_token %}
+
+    <!-- Section 1: Basic Fee Plan Details -->
+    <div class="bento-card" style="margin-bottom: 1.5rem;">
+      <h3 style="font-size: 1.15rem; margin-bottom: 1.25rem; color: var(--rose-primary);">1. Annual Fee Plan Information</h3>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem;">
+        <div class="form-group" style="grid-column: 1 / -1;">
+          <label class="form-label" style="font-weight: 700;">Fee Structure / Plan Name*</label>
+          <input type="text" name="title" class="form-control" required
+                 value="{{ structure.title|default:'' }}"
+                 placeholder="e.g. Plus One Humanities - Annual Course Fee, Academy Vehicle Fee 2026-27">
+          <span style="font-size: 0.75rem; color: var(--text-muted);">Name clearly for student invoices and receipts</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" style="font-weight: 700;">Fee Category*</label>
+          <select name="category" class="form-select" required>
+            <option value="">-- Select Category --</option>
+            {% for cat in categories %}
+              <option value="{{ cat.id }}" {% if structure.category_id == cat.id %}selected{% endif %}>
+                {{ cat.name }} ({{ cat.get_fee_type_display }})
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" style="font-weight: 700;">Academic Year*</label>
+          <select name="academic_year" class="form-select" required>
+            <option value="">-- Select Academic Year --</option>
+            {% for ay in academic_years %}
+              <option value="{{ ay.id }}" {% if structure.academic_year_id == ay.id or not structure and ay.is_current %}selected{% endif %}>
+                {{ ay.name }}{% if ay.is_current %} (Current){% endif %}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Assign to Specific Class (Optional)</label>
+          <select name="school_class" class="form-select">
+            <option value="">-- All Classes / General --</option>
+            {% for sc in school_classes %}
+              <option value="{{ sc.id }}" {% if structure.school_class_id == sc.id %}selected{% endif %}>
+                {{ sc.display_name }}
+              </option>
+            {% endfor %}
+          </select>
+          <span style="font-size: 0.75rem; color: var(--text-muted);">Select if fee applies to only one class section</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Or Assign to Entire Grade (Optional)</label>
+          <select name="grade" class="form-select">
+            <option value="">-- Specific Class / Entire School --</option>
+            {% for gr in grades %}
+              <option value="{{ gr.id }}" {% if structure.grade_id == gr.id %}selected{% endif %}>
+                {{ gr.name }}
+              </option>
+            {% endfor %}
+          </select>
+          <span style="font-size: 0.75rem; color: var(--text-muted);">Applies to all sections in this grade level</span>
+        </div>
+
+        <div class="form-group" style="grid-column: 1 / -1;">
+          <label class="form-label" style="font-weight: 700; font-size: 1rem;">Total Annual Fee Amount (₹)*</label>
+          <div style="position: relative; max-width: 320px;">
+            <span style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); font-weight: 700; color: var(--rose-primary);">₹</span>
+            <input type="number" id="id_total_amount" name="total_amount" step="0.01" min="0" required
+                   class="form-control" style="padding-left: 2.25rem; font-size: 1.25rem; font-weight: 800; color: var(--text-main);"
+                   value="{{ structure.total_amount|default:'0.00' }}" placeholder="0.00">
+          </div>
+          <span style="font-size: 0.78rem; color: var(--text-muted);">Total fee for the academic year. Installments below should sum up to this amount.</span>
+        </div>
+
+        <div class="form-group" style="grid-column: 1 / -1;">
+          <label class="form-label">Description / Guidelines (Optional)</label>
+          <textarea name="description" class="form-control" rows="2" placeholder="e.g. Includes tuition, laboratory fees, and library charges.">{{ structure.description|default:'' }}</textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 2: Installment Plan Builder -->
+    <div class="bento-card" style="margin-bottom: 1.5rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
+        <div>
+          <h3 style="font-size: 1.15rem; color: var(--rose-primary); margin: 0;">2. Installment Schedule &amp; Due Dates</h3>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">Specify how many installments, amount for each installment, and when each is due.</p>
+        </div>
+
+        <!-- Quick Presets -->
+        <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
+          <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Quick Split:</span>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="applyPreset(2)" title="Split into 2 equal half-yearly installments">2 Terms</button>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="applyPreset(3)" title="Split into 3 equal term-wise installments">3 Terms</button>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="applyPreset(4)" title="Split into 4 equal quarterly installments">4 Quarters</button>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="applyPreset(10)" title="Split into 10 monthly installments">10 Months</button>
+          <button type="button" class="btn btn-pastel-rose btn-sm" onclick="distributeEvenly()" title="Evenly distribute total fee across existing rows">⚖️ Equalize Amounts</button>
+        </div>
+      </div>
+
+      <!-- Live Balance & Status Bar -->
+      <div id="balance-banner" style="background: var(--bg-surface); padding: 0.85rem 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+        <div style="display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap;">
+          <div>
+            <span style="font-size: 0.75rem; color: var(--text-muted); display: block; font-weight: 600;">ANNUAL TOTAL</span>
+            <span id="display-total" style="font-size: 1.15rem; font-weight: 800;">₹0.00</span>
+          </div>
+          <div>
+            <span style="font-size: 0.75rem; color: var(--text-muted); display: block; font-weight: 600;">SUM OF INSTALLMENTS</span>
+            <span id="display-sum" style="font-size: 1.15rem; font-weight: 800; color: var(--rose-primary);">₹0.00</span>
+          </div>
+          <div>
+            <span style="font-size: 0.75rem; color: var(--text-muted); display: block; font-weight: 600;">DIFFERENCE</span>
+            <span id="display-diff" style="font-size: 1.15rem; font-weight: 800;">₹0.00</span>
+          </div>
+        </div>
+        <div id="balance-badge-wrapper">
+          <span class="badge bg-pastel-sage" id="balance-status-badge">Balanced</span>
+        </div>
+      </div>
+
+      <!-- Installments Dynamic Table -->
+      <div class="table-responsive">
+        <table class="custom-table" id="installments-table">
+          <thead>
+            <tr>
+              <th style="width: 45px;">#</th>
+              <th>Installment Title*</th>
+              <th style="width: 170px;">Amount (₹)*</th>
+              <th style="width: 170px;">Due Date*</th>
+              <th style="width: 150px;">Transport Scope</th>
+              <th style="width: 50px; text-align: center;">Action</th>
+            </tr>
+          </thead>
+          <tbody id="installments-tbody">
+            {% if existing_installments %}
+              {% for inst in existing_installments %}
+                <tr class="inst-row" data-id="{{ inst.id }}">
+                  <td class="row-num" style="font-weight: 700; text-align: center;">{{ inst.installment_number }}</td>
+                  <td>
+                    <input type="hidden" name="inst_id" value="{{ inst.id }}">
+                    <input type="hidden" name="inst_number" class="inst-num-input" value="{{ inst.installment_number }}">
+                    <input type="text" name="inst_title" class="form-control form-control-sm inst-title-input" required
+                           value="{{ inst.title }}" placeholder="e.g. 1st Installment (Admission)">
+                  </td>
+                  <td>
+                    <input type="number" step="0.01" min="0" name="inst_amount" class="form-control form-control-sm inst-amount-input" required
+                           value="{{ inst.amount }}" oninput="updateBalance()">
+                  </td>
+                  <td>
+                    <input type="date" name="inst_due_date" class="form-control form-control-sm inst-date-input" required
+                           value="{{ inst.due_date|date:'Y-m-d' }}">
+                  </td>
+                  <td>
+                    <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; cursor: pointer; margin: 0;">
+                      <input type="checkbox" name="inst_requires_vehicle" value="1" class="form-check-input" {% if inst.requires_vehicle %}checked{% endif %}>
+                      <span>Vehicle Only</span>
+                    </label>
+                  </td>
+                  <td style="text-align: center;">
+                    <button type="button" class="btn btn-secondary btn-sm" style="color: var(--coral-primary); padding: 0.25rem 0.5rem;" onclick="removeRow(this)" title="Delete row">
+                      &times;
+                    </button>
+                  </td>
+                </tr>
+              {% endfor %}
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+
+      <div style="margin-top: 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="addNewRow()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          + Add Custom Installment
+        </button>
+        <span style="font-size: 0.8rem; color: var(--text-muted);">You can add as many installments as needed (e.g. 2 terms, 3 terms, or 10 monthly dues).</span>
+      </div>
+    </div>
+
+    <!-- Section 3: How Automatic Due Works (Help Card for Institution User) -->
+    <div class="bento-card" style="margin-bottom: 2rem; background: linear-gradient(135deg, var(--bg-surface), var(--sky-pastel)); border-color: rgba(56, 189, 248, 0.3);">
+      <div style="display: flex; gap: 1rem; align-items: flex-start;">
+        <div style="font-size: 1.75rem;">💡</div>
+        <div>
+          <h4 style="font-size: 1rem; font-weight: 700; margin-bottom: 0.35rem; color: var(--sky-primary);">
+            How Does the Next Due Date Update Automatically?
+          </h4>
+          <p style="font-size: 0.84rem; color: var(--text-main); margin-bottom: 0.4rem; line-height: 1.5;">
+            The academy system continuously aligns with the live calendar date:
+          </p>
+          <ul style="font-size: 0.82rem; color: var(--text-muted); margin: 0; padding-left: 1.25rem; line-height: 1.6;">
+            <li><b>Current Target:</b> The system looks at all installments ordered by due date and automatically marks the upcoming installment whose due date is nearest to or on today's date.</li>
+            <li><b>Automatic Rollover:</b> As soon as an installment's due date passes, the next installment automatically becomes the <b>Active Due Target</b>. The Fee Dashboard and Defaulters lists instantly switch to tracking the new due without any manual action needed!</li>
+            <li><b>Manual Flexibility:</b> You can also manually lock or inspect any past or upcoming installment anytime in <b>Fee Master</b> or the <b>Defaulters Tracker</b>.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Submit & Cancel Buttons -->
+    <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-bottom: 3rem;">
+      <a href="{% url 'fees:fee_master' %}" class="btn btn-secondary">Cancel</a>
+      <button type="submit" class="btn btn-primary btn-lg" style="padding: 0.75rem 2rem;">
+        💾 Save Fee Structure &amp; Installments
+      </button>
+    </div>
+  </form>
+</div>
+
+<!-- Dynamic Installment Builder Scripts -->
+<script>
+  // Current calendar year for intelligent date defaults
+  const currentYear = new Date().getFullYear();
+
+  function getTotalAmount() {
+    const val = parseFloat(document.getElementById('id_total_amount').value);
+    return isNaN(val) ? 0 : val;
+  }
+
+  function updateBalance() {
+    const total = getTotalAmount();
+    let sum = 0;
+    const amountInputs = document.querySelectorAll('.inst-amount-input');
+    amountInputs.forEach(input => {
+      const v = parseFloat(input.value);
+      if (!isNaN(v)) sum += v;
+    });
+
+    const diff = total - sum;
+
+    document.getElementById('display-total').innerText = '₹' + total.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    document.getElementById('display-sum').innerText = '₹' + sum.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    
+    const diffElem = document.getElementById('display-diff');
+    const badgeWrapper = document.getElementById('balance-badge-wrapper');
+
+    if (Math.abs(diff) < 0.01) {
+      diffElem.innerText = '₹0.00';
+      diffElem.style.color = 'var(--sage-primary)';
+      badgeWrapper.innerHTML = '<span class="badge bg-pastel-sage" style="font-weight: 700;">✓ Balanced Perfectly</span>';
+    } else if (diff > 0) {
+      diffElem.innerText = '+₹' + diff.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+      diffElem.style.color = 'var(--amber-primary)';
+      badgeWrapper.innerHTML = `<span class="badge bg-pastel-amber" style="font-weight: 700;">⚠️ ₹${diff.toFixed(0)} Remaining to Allocate</span>`;
+    } else {
+      diffElem.innerText = '-₹' + Math.abs(diff).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+      diffElem.style.color = 'var(--coral-primary)';
+      badgeWrapper.innerHTML = `<span class="badge bg-pastel-rose" style="font-weight: 700;">⚠️ Exceeds Total by ₹${Math.abs(diff).toFixed(0)}</span>`;
+    }
+  }
+
+  function renumberRows() {
+    const rows = document.querySelectorAll('#installments-tbody tr');
+    rows.forEach((row, idx) => {
+      const num = idx + 1;
+      row.querySelector('.row-num').innerText = num;
+      const numInput = row.querySelector('.inst-num-input');
+      if (numInput) numInput.value = num;
+    });
+  }
+
+  function removeRow(btn) {
+    const tbody = document.getElementById('installments-tbody');
+    if (tbody.children.length <= 1) {
+      alert("At least one installment is required for the fee structure.");
+      return;
+    }
+    const row = btn.closest('tr');
+    row.remove();
+    renumberRows();
+    updateBalance();
+  }
+
+  function addNewRow(title = '', amount = '', dueDate = '', isVehicle = false, id = '') {
+    const tbody = document.getElementById('installments-tbody');
+    const nextNum = tbody.children.length + 1;
+
+    const tr = document.createElement('tr');
+    tr.className = 'inst-row';
+    tr.innerHTML = `
+      <td class="row-num" style="font-weight: 700; text-align: center;">${nextNum}</td>
+      <td>
+        <input type="hidden" name="inst_id" value="${id}">
+        <input type="hidden" name="inst_number" class="inst-num-input" value="${nextNum}">
+        <input type="text" name="inst_title" class="form-control form-control-sm inst-title-input" required
+               value="${title || (nextNum + 'th Installment')}" placeholder="e.g. ${nextNum}th Installment">
+      </td>
+      <td>
+        <input type="number" step="0.01" min="0" name="inst_amount" class="form-control form-control-sm inst-amount-input" required
+               value="${amount || ''}" oninput="updateBalance()" placeholder="0.00">
+      </td>
+      <td>
+        <input type="date" name="inst_due_date" class="form-control form-control-sm inst-date-input" required
+               value="${dueDate || ''}">
+      </td>
+      <td>
+        <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; cursor: pointer; margin: 0;">
+          <input type="checkbox" name="inst_requires_vehicle" value="1" class="form-check-input" ${isVehicle ? 'checked' : ''}>
+          <span>Vehicle Only</span>
+        </label>
+      </td>
+      <td style="text-align: center;">
+        <button type="button" class="btn btn-secondary btn-sm" style="color: var(--coral-primary); padding: 0.25rem 0.5rem;" onclick="removeRow(this)" title="Delete row">
+          &times;
+        </button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+    renumberRows();
+    updateBalance();
+  }
+
+  function distributeEvenly() {
+    const total = getTotalAmount();
+    const rows = document.querySelectorAll('#installments-tbody tr');
+    if (rows.length === 0 || total <= 0) return;
+
+    const baseAmount = Math.floor(total / rows.length);
+    const remainder = total - (baseAmount * rows.length);
+
+    rows.forEach((row, idx) => {
+      const amountInput = row.querySelector('.inst-amount-input');
+      // allocate remainder to 1st installment so sum matches exactly
+      const allocated = (idx === 0) ? (baseAmount + remainder) : baseAmount;
+      amountInput.value = allocated.toFixed(2);
+    });
+    updateBalance();
+  }
+
+  function applyPreset(count) {
+    const total = getTotalAmount();
+    const tbody = document.getElementById('installments-tbody');
+    tbody.innerHTML = '';
+
+    const baseAmount = total > 0 ? Math.floor(total / count) : 0;
+    const remainder = total > 0 ? (total - (baseAmount * count)) : 0;
+
+    const presets = {
+      2: [
+        { title: '1st Installment (Admission / Term 1)', date: `${currentYear}-07-15` },
+        { title: '2nd Installment (Term 2)', date: `${currentYear}-11-15` }
+      ],
+      3: [
+        { title: '1st Installment (Admission / Term 1)', date: `${currentYear}-07-15` },
+        { title: '2nd Installment (Term 2)', date: `${currentYear}-11-15` },
+        { title: '3rd Installment (Final Term)', date: `${currentYear + 1}-02-15` }
+      ],
+      4: [
+        { title: 'Quarter 1 Fee (June - Aug)', date: `${currentYear}-06-15` },
+        { title: 'Quarter 2 Fee (Sep - Nov)', date: `${currentYear}-09-15` },
+        { title: 'Quarter 3 Fee (Dec - Feb)', date: `${currentYear}-12-15` },
+        { title: 'Quarter 4 Fee (Mar - May)', date: `${currentYear + 1}-03-15` }
+      ],
+      10: [
+        { title: 'June Fee', date: `${currentYear}-06-10` },
+        { title: 'July Fee', date: `${currentYear}-07-10` },
+        { title: 'August Fee', date: `${currentYear}-08-10` },
+        { title: 'September Fee', date: `${currentYear}-09-10` },
+        { title: 'October Fee', date: `${currentYear}-10-10` },
+        { title: 'November Fee', date: `${currentYear}-11-10` },
+        { title: 'December Fee', date: `${currentYear}-12-10` },
+        { title: 'January Fee', date: `${currentYear + 1}-01-10` },
+        { title: 'February Fee', date: `${currentYear + 1}-02-10` },
+        { title: 'March Fee', date: `${currentYear + 1}-03-10` }
+      ]
+    };
+
+    const config = presets[count] || [];
+
+    for (let i = 0; i < count; i++) {
+      const item = config[i] || { title: `${i + 1}th Installment`, date: `${currentYear}-0${Math.min(i + 1, 9)}-15` };
+      const amt = (i === 0) ? (baseAmount + remainder) : baseAmount;
+      addNewRow(item.title, amt > 0 ? amt.toFixed(2) : '', item.date, false, '');
+    }
+
+    updateBalance();
+  }
+
+  // Initialize on page load
+  document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('id_total_amount').addEventListener('input', updateBalance);
+
+    const tbody = document.getElementById('installments-tbody');
+    // If empty (new structure), initialize with default 3-term preset
+    if (tbody.children.length === 0) {
+      applyPreset(3);
+    } else {
+      updateBalance();
+    }
+  });
+</script>
+{% endblock %}

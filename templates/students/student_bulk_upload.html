@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}Bulk Excel Student Upload | Arifa Women's Academy{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <span class="badge bg-pastel-lavender" style="margin-bottom: 0.35rem;">BULK ADMISSION SYSTEM</span>
+      <h1 style="font-size: 1.85rem;">Bulk Student Excel Upload</h1>
+      <p style="color: var(--text-muted); font-size: 0.88rem;">Import hundreds of students in seconds via Microsoft Excel (.xlsx)</p>
+    </div>
+    <a href="{% url 'students:student_list' %}" class="btn btn-secondary btn-sm">&larr; Back to Students</a>
+  </div>
+
+  <!-- Step 1: Download Template Bento Box -->
+  <div class="bento-card" style="margin-bottom: 1.5rem; background: linear-gradient(135deg, var(--bg-surface), var(--rose-pastel)); border-color: rgba(226, 91, 120, 0.3);">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <span class="stat-icon-wrapper bg-pastel-rose" style="width: 52px; height: 52px; font-size: 1.6rem;">📥</span>
+        <div>
+          <h3 style="font-size: 1.2rem; margin-bottom: 0.2rem;">Step 1: Download Standard Excel Template</h3>
+          <p style="font-size: 0.85rem; color: var(--text-muted);">
+            Pre-formatted `.xlsx` workbook containing column headers, data formats, and sample rows for Arifa Women's Academy.
+          </p>
+        </div>
+      </div>
+      <a href="{% url 'students:download_template' %}" class="btn btn-primary">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        Download Template (.xlsx)
+      </a>
+    </div>
+  </div>
+
+  <!-- Step 2: Upload File Box -->
+  <div class="bento-card" style="margin-bottom: 1.5rem;">
+    <h3 style="font-size: 1.2rem; margin-bottom: 0.4rem;">Step 2: Upload Completed Excel Sheet</h3>
+    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">
+      Select your `.xlsx` file. Existing student admission numbers will be updated automatically, and new students will be enrolled.
+    </p>
+
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      <div class="form-group" style="margin-bottom: 1.5rem;">
+        <label class="form-label">Select Excel File (.xlsx)</label>
+        {{ form.excel_file }}
+        {% if form.excel_file.errors %}
+          <span style="color: var(--coral-primary); font-size: 0.8rem;">{{ form.excel_file.errors }}</span>
+        {% endif %}
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 1rem;">
+        <a href="{% url 'students:student_list' %}" class="btn btn-secondary">Cancel</a>
+        <button type="submit" class="btn btn-primary btn-lg">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+          Upload and Process Students &rarr;
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Instruction Notes -->
+  <div class="bento-card" style="background: var(--bg-subtle);">
+    <h4 style="font-size: 0.95rem; margin-bottom: 0.6rem; color: var(--text-main);">Important Excel Data Guidelines:</h4>
+    <ul style="font-size: 0.85rem; color: var(--text-muted); padding-left: 1.25rem; line-height: 1.7;">
+      <li><b>Admission Number &amp; Full Name:</b> Mandatory for each student row.</li>
+      <li><b>Grade Level:</b> e.g., <code>Plus One</code>, <code>Plus Two</code>, <code>Class 10</code>, <code>Class 9</code>, <code>Class 8</code>.</li>
+      <li><b>Course Name:</b> e.g., <code>Humanities</code>, <code>Commerce</code>, or <code>General</code>.</li>
+      <li><b>Section:</b> e.g., <code>A</code>, <code>B</code>. (The system will automatically combine Grade + Course + Section into the correct class).</li>
+      <li><b>Date of Birth:</b> Follow <code>YYYY-MM-DD</code> format (e.g. <code>2009-05-14</code>).</li>
+      <li><b>Vehicle Opted:</b> Type <code>Yes</code> or <code>No</code> to configure monthly transportation billing.</li>
+    </ul>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}Confirm Student Deletion | Arifa Women's Academy{% endblock %}
+
+{% block content %}
+<div style="max-width: 520px; margin: 3rem auto;">
+  <div class="bento-card" style="text-align: center; border-color: rgba(244, 63, 94, 0.4);">
+    <div class="stat-icon-wrapper bg-pastel-rose" style="margin: 0 auto 1rem; width: 60px; height: 60px; font-size: 1.8rem;">
+      ⚠️
+    </div>
+    <h2 style="font-size: 1.4rem; margin-bottom: 0.5rem;">Delete Student Record?</h2>
+    <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1.5rem;">
+      Are you sure you want to permanently delete <b>{{ student.full_name }}</b> ({{ student.admission_number }}) from <b>{{ student.current_class.display_name }}</b>?
+    </p>
+
+    <form method="post">
+      {% csrf_token %}
+      <div style="display: flex; gap: 1rem; justify-content: center;">
+        <a href="{% url 'students:student_profile' student.id %}" class="btn btn-secondary">Cancel</a>
+        <button type="submit" class="btn btn-primary" style="background: var(--coral-primary);">
+          Confirm Delete
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

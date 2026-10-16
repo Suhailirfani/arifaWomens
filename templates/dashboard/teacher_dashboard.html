@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+
+{% block title %}Teacher Dashboard | Arifa Women's Academy{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
+  <div>
+    <span class="badge bg-pastel-sage" style="margin-bottom: 0.4rem;">FACULTY PORTAL</span>
+    <h1 style="font-size: 1.85rem;">Welcome, {{ staff_profile.full_name|default:user.get_full_name|default:user.username }}</h1>
+    <p style="color: var(--text-muted); font-size: 0.88rem;">{{ staff_profile.designation|default:"Faculty" }} &bull; {{ managed_class.display_name }} Mentor</p>
+  </div>
+
+  <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+    <a href="{% url 'attendance:take_attendance' %}?class_id={{ managed_class.id }}" class="btn btn-primary btn-sm">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+      Take Daily Attendance
+    </a>
+    <a href="{% url 'examinations:marks_entry' %}" class="btn btn-secondary btn-sm">
+      Enter Exam Marks
+    </a>
+    <a href="{% url 'dashboard:class_dashboard' managed_class.id %}" class="btn btn-pastel-sage btn-sm">
+      Class Dashboard &rarr;
+    </a>
+  </div>
+</div>
+
+<!-- Bento Row: Class Overview & Today's Attendance State -->
+<div class="bento-grid">
+  <!-- Today's Attendance Banner Card -->
+  <div class="bento-card col-8 col-md-12">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+      <h3 style="font-size: 1.25rem;">{{ managed_class.display_name }} &bull; Today's Attendance</h3>
+      <span style="font-size: 0.82rem; color: var(--text-muted);">{{ today|date:"l, d F Y" }}</span>
+    </div>
+
+    {% if today_session %}
+      <div style="background: var(--sage-pastel); border: 1px solid rgba(16, 185, 129, 0.3); padding: 1.25rem; border-radius: var(--radius-lg); margin-bottom: 1.25rem;">
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <span class="pulse-dot pulse-green"></span>
+            <div>
+              <span style="font-weight: 800; font-size: 1.1rem; color: var(--sage-text);">Attendance Marked for Today!</span>
+              <p style="font-size: 0.8rem; color: var(--sage-text); opacity: 0.85;">Attendance Rate: <b>{{ today_session.attendance_rate }}%</b></p>
+            </div>
+          </div>
+          <div style="display: flex; gap: 1.25rem;">
+            <div><span style="font-size: 1.3rem; font-weight: 800; color: var(--sage-text);">{{ today_session.present_count }}</span> <span style="font-size: 0.75rem; display: block;">Present</span></div>
+            <div><span style="font-size: 1.3rem; font-weight: 800; color: var(--coral-text);">{{ today_session.absent_count }}</span> <span style="font-size: 0.75rem; display: block;">Absent</span></div>
+            <div><span style="font-size: 1.3rem; font-weight: 800; color: var(--amber-text);">{{ today_session.late_count }}</span> <span style="font-size: 0.75rem; display: block;">Late</span></div>
+          </div>
+        </div>
+      </div>
+    {% else %}
+      <div style="background: var(--amber-pastel); border: 1px solid rgba(245, 158, 11, 0.3); padding: 1.25rem; border-radius: var(--radius-lg); margin-bottom: 1.25rem;">
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+          <div>
+            <span style="font-weight: 800; font-size: 1.1rem; color: var(--amber-text);">Attendance Pending for Today</span>
+            <p style="font-size: 0.8rem; color: var(--amber-text); opacity: 0.85;">You have not submitted attendance for {{ managed_class.display_name }} yet.</p>
+          </div>
+          <a href="{% url 'attendance:take_attendance' %}?class_id={{ managed_class.id }}" class="btn btn-primary btn-sm">
+            Mark Attendance Now &rarr;
+          </a>
+        </div>
+      </div>
+    {% endif %}
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: auto;">
+      <span style="font-size: 0.85rem; color: var(--text-muted);">Class strength: <b>{{ students.count }}</b> students</span>
+      <a href="{% url 'attendance:take_attendance' %}?class_id={{ managed_class.id }}" class="btn btn-secondary btn-sm">Update / Edit Record</a>
+    </div>
+  </div>
+
+  <!-- Class Bento Info -->
+  <div class="bento-card col-4 col-md-12" style="background: linear-gradient(135deg, var(--bg-surface), var(--rose-pastel));">
+    <div class="stat-icon-wrapper bg-pastel-rose" style="margin-bottom: 0.75rem;">🏫</div>
+    <h3 style="font-size: 1.15rem; margin-bottom: 0.4rem;">{{ managed_class.display_name }}</h3>
+    <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1rem;">
+      Room: <b>{{ managed_class.room_number|default:"Room 101" }}</b> &bull; Academic Session: <b>{{ managed_class.academic_year.name }}</b>
+    </p>
+
+    <div style="border-top: 1px solid var(--border-color); padding-top: 0.75rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.5rem;">
+      <a href="{% url 'dashboard:class_dashboard' managed_class.id %}" class="btn btn-secondary btn-sm" style="width: 100%;">
+        View Class Dashboard &bull; Fee, Exam &amp; Stats
+      </a>
+      <a href="{% url 'attendance:history' %}?class_id={{ managed_class.id }}" class="btn btn-secondary btn-sm" style="width: 100%;">
+        Class Attendance History Log
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Class Students List Table -->
+<div class="bento-card col-12">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+    <h3 style="font-size: 1.25rem;">Students in {{ managed_class.display_name }}</h3>
+    <span class="badge bg-pastel-lavender">{{ students.count }} Enrolled</span>
+  </div>
+
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Roll</th>
+          <th>Student Name</th>
+          <th>Admission No</th>
+          <th>Guardian Contact</th>
+          <th>Today's Status</th>
+          <th>Profile &amp; Heatmap</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for st in students %}
+          <tr>
+            <td><b>{{ st.roll_number|default:"-" }}</b></td>
+            <td>
+              <a href="{% url 'students:student_profile' st.id %}" style="font-weight: 700; color: var(--rose-primary);">
+                {{ st.full_name }}
+              </a>
+            </td>
+            <td>{{ st.admission_number }}</td>
+            <td>{{ st.guardian_phone }}</td>
+            <td>
+              {% with status=st.get_today_attendance %}
+                {% if status == 'PRESENT' %}
+                  <span class="badge badge-present">Present</span>
+                {% elif status == 'ABSENT' %}
+                  <span class="badge badge-absent">Absent</span>
+                {% elif status == 'LATE' %}
+                  <span class="badge badge-late">Late</span>
+                {% else %}
+                  <span class="badge" style="background: var(--bg-subtle); color: var(--text-subtle);">Not Marked</span>
+                {% endif %}
+              {% endwith %}
+            </td>
+            <td>
+              <a href="{% url 'students:student_profile' st.id %}" class="btn btn-secondary btn-sm">
+                View Heatmap &rarr;
+              </a>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

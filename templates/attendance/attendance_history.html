@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+
+{% block title %}Attendance History | Arifa Women's Academy{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
+  <div>
+    <span class="badge bg-pastel-sage" style="margin-bottom: 0.35rem;">ATTENDANCE ARCHIVE</span>
+    <h1 style="font-size: 1.85rem;">Attendance History Log</h1>
+    <p style="color: var(--text-muted); font-size: 0.88rem;">Class-wise daily attendance records and verified sessions</p>
+  </div>
+
+  <a href="{% url 'attendance:take_attendance' %}" class="btn btn-primary btn-sm">
+    + Take Today's Attendance
+  </a>
+</div>
+
+<!-- Filter by Class -->
+<div class="bento-card" style="padding: 1.25rem; margin-bottom: 1.5rem;">
+  <form method="get" style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
+    <div class="form-group" style="margin-bottom: 0; min-width: 250px;">
+      <label class="form-label">Filter by Class</label>
+      <select name="class_id" class="form-select" onchange="this.form.submit()">
+        <option value="">All Classes</option>
+        {% for c in classes %}
+          <option value="{{ c.id }}" {% if selected_class_id == c.id|stringformat:"s" %}selected{% endif %}>
+            {{ c.display_name }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div>
+      <button type="submit" class="btn btn-primary">Filter Log</button>
+      <a href="{% url 'attendance:attendance_history' %}" class="btn btn-secondary">Clear</a>
+    </div>
+  </form>
+</div>
+
+<!-- Attendance Sessions Table -->
+<div class="bento-card">
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Class &amp; Stream</th>
+          <th>Recorded By</th>
+          <th>Total Students</th>
+          <th>Present</th>
+          <th>Absent</th>
+          <th>Attendance Rate</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in sessions %}
+          <tr>
+            <td><b>{{ s.date|date:"d M Y (D)" }}</b></td>
+            <td>
+              <span class="badge bg-pastel-lavender">{{ s.school_class.display_name }}</span>
+            </td>
+            <td>{{ s.taken_by.full_name|default:"Class Faculty" }}</td>
+            <td>{{ s.total_students }}</td>
+            <td><b style="color: var(--sage-primary);">{{ s.present_count }}</b></td>
+            <td><b style="color: var(--coral-primary);">{{ s.absent_count }}</b></td>
+            <td>
+              <span class="badge {% if s.attendance_rate >= 80 %}badge-present{% elif s.attendance_rate >= 60 %}badge-late{% else %}badge-absent{% endif %}">
+                {{ s.attendance_rate }}%
+              </span>
+            </td>
+            <td>
+              <a href="{% url 'attendance:take_attendance' %}?class_id={{ s.school_class.id }}&date={{ s.date|date:'Y-m-d' }}" class="btn btn-secondary btn-sm" style="font-size: 0.75rem;">
+                Edit Session
+              </a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="8" style="text-align: center; padding: 2.5rem; color: var(--text-muted);">
+              No attendance sessions found.
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

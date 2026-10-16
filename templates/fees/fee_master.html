@@ -1,0 +1,415 @@
+{% extends 'base.html' %}
+
+{% block title %}Fee Master & Setup | Arifa Women's Academy{% endblock %}
+
+{% block content %}
+<!-- Top Header & Primary Actions -->
+<div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
+  <div>
+    <span class="badge bg-pastel-amber" style="margin-bottom: 0.35rem;">FINANCIAL ARCHITECTURE & SETUP</span>
+    <h1 style="font-size: 1.85rem;">Fee Master &amp; Structure Setup</h1>
+    <p style="color: var(--text-muted); font-size: 0.88rem;">Configure academic year fee plans, installment schedules, due dates, and vehicle charges</p>
+  </div>
+
+  <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+    <a href="{% url 'fees:vehicle_fee_dashboard' %}" class="btn btn-secondary btn-sm" style="border-color: var(--amber-primary); font-weight: 700;">
+      🚌 Monthly Vehicle &amp; Bus Stops
+    </a>
+    <a href="{% url 'fees:fee_structure_builder' %}" class="btn btn-primary btn-sm">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+      + New Annual Fee Plan &amp; Schedule
+    </a>
+    <a href="{% url 'fees:fee_auto_sync_dues' %}" class="btn btn-secondary btn-sm" title="Re-sync active installments with current calendar date">
+      🔄 Auto-Sync Next Dues by Date
+    </a>
+    <a href="{% url 'fees:fee_category_create' %}" class="btn btn-secondary btn-sm">
+      + New Category
+    </a>
+  </div>
+</div>
+
+<!-- Educational Help Banner for Non-Technical Institution Users -->
+<div class="bento-card col-12" style="margin-bottom: 2rem; background: linear-gradient(135deg, var(--bg-surface), var(--rose-pastel)); border-color: rgba(226, 91, 120, 0.3);">
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+    <div style="display: flex; gap: 1rem; align-items: flex-start;">
+      <div style="font-size: 2rem;">💡</div>
+      <div>
+        <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.35rem; color: var(--rose-primary);">
+          How Installments &amp; Automatic Next Dues Work
+        </h3>
+        <p style="font-size: 0.86rem; color: var(--text-main); margin-bottom: 0.5rem; line-height: 1.5;">
+          <b>No technical setup required.</b> You can manage your academy's entire fee breakdown directly from here:
+        </p>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-top: 0.5rem;">
+          <div style="background: var(--bg-surface); padding: 0.85rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+            <span style="font-weight: 700; font-size: 0.88rem; color: var(--rose-primary); display: block; margin-bottom: 0.2rem;">
+              1. Number of Installments &amp; Amounts
+            </span>
+            <span style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.4; display: block;">
+              When creating an annual fee (e.g. ₹30,000), choose 2, 3, 4, or 10 installments or custom. Specify exact amounts for each term (e.g. ₹12,000 + ₹10,000 + ₹8,000).
+            </span>
+          </div>
+          <div style="background: var(--bg-surface); padding: 0.85rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+            <span style="font-weight: 700; font-size: 0.88rem; color: var(--sky-primary); display: block; margin-bottom: 0.2rem;">
+              2. When Does the Next Due Update Automatically?
+            </span>
+            <span style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.4; display: block;">
+              Installments automatically roll over based on calendar dates! As soon as an installment's due date passes, the next installment automatically becomes the <b>Active Due Target</b> across the dashboard and defaulters report.
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Bento KPI Cards -->
+<div class="bento-grid">
+  <!-- Card 1: Total Fee Structures -->
+  <div class="bento-card col-3 col-md-6">
+    <div class="stat-widget">
+      <div class="stat-info">
+        <span class="stat-label">Fee Structures</span>
+        <span class="stat-value" style="color: var(--rose-primary);">{{ total_structures }}</span>
+        <span class="stat-subtext">Annual course plans</span>
+      </div>
+      <div class="stat-icon-wrapper bg-pastel-rose">📋</div>
+    </div>
+  </div>
+
+  <!-- Card 2: Total Installments -->
+  <div class="bento-card col-3 col-md-6">
+    <div class="stat-widget">
+      <div class="stat-info">
+        <span class="stat-label">Course Installments</span>
+        <span class="stat-value" style="color: var(--sky-primary);">{{ total_installments }}</span>
+        <span class="stat-subtext">Term-wise installments</span>
+      </div>
+      <div class="stat-icon-wrapper bg-pastel-sky">📅</div>
+    </div>
+  </div>
+
+  <!-- Card 3: Active Due Tracker -->
+  <div class="bento-card col-3 col-md-6">
+    <div class="stat-widget">
+      <div class="stat-info">
+        <span class="stat-label">Active Course Due</span>
+        {% if current_due_inst %}
+          <span class="stat-value" style="font-size: 1.15rem; color: var(--coral-primary);">{{ current_due_inst.title }}</span>
+          <span class="stat-subtext">Due: <b>{{ current_due_inst.due_date|date:"d M Y" }}</b></span>
+        {% else %}
+          <span class="stat-value" style="font-size: 1rem; color: var(--text-muted);">None set</span>
+          <span class="stat-subtext">No active due</span>
+        {% endif %}
+      </div>
+      <div class="stat-icon-wrapper bg-pastel-rose">⚡</div>
+    </div>
+  </div>
+
+  <!-- Card 4: Monthly Vehicle Transportation -->
+  <div class="bento-card col-3 col-md-6">
+    <div class="stat-widget">
+      <div class="stat-info">
+        <span class="stat-label">Monthly Vehicle Fees</span>
+        <span class="stat-value" style="color: var(--amber-primary);">{{ active_vehicle_passes_count }} Passes</span>
+        <span class="stat-subtext">Due every <b>{{ vehicle_setting.due_day_of_month }}th</b> of month</span>
+      </div>
+      <div class="stat-icon-wrapper bg-pastel-amber">🚌</div>
+    </div>
+  </div>
+</div>
+
+<!-- Section: Fee Structures & Installments -->
+<div style="margin-top: 1.5rem; margin-bottom: 2.5rem;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+    <div>
+      <h2 style="font-size: 1.35rem; font-weight: 700;">Academic Fee Plans &amp; Installment Schedules</h2>
+      <p style="font-size: 0.85rem; color: var(--text-muted);">Class-specific or grade-wide annual fee breakdowns</p>
+    </div>
+    <a href="{% url 'fees:fee_structure_create' %}" class="btn btn-primary btn-sm">+ Add New Plan</a>
+  </div>
+
+  {% if structures %}
+    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+      {% for structure in structures %}
+        <div class="bento-card col-12" style="border-left: 5px solid var(--rose-primary);">
+          <!-- Structure Header -->
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.25rem;">
+            <div>
+              <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.35rem;">
+                <h3 style="font-size: 1.25rem; font-weight: 700; margin: 0;">{{ structure.title }}</h3>
+                <span class="badge bg-pastel-rose">{{ structure.category.name }}</span>
+                <span class="badge bg-pastel-sky">{{ structure.academic_year.name }}</span>
+                {% if structure.school_class %}
+                  <span class="badge bg-pastel-sage">{{ structure.school_class.display_name }}</span>
+                {% elif structure.grade %}
+                  <span class="badge bg-pastel-sage">{{ structure.grade.name }} (All Sections)</span>
+                {% else %}
+                  <span class="badge bg-pastel-lavender">Institution-Wide</span>
+                {% endif %}
+              </div>
+              {% if structure.description %}
+                <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0;">{{ structure.description }}</p>
+              {% endif %}
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+              <div style="text-align: right; margin-right: 0.5rem;">
+                <span style="font-size: 0.75rem; color: var(--text-muted); display: block; font-weight: 600;">TOTAL ANNUAL FEE</span>
+                <span style="font-size: 1.4rem; font-weight: 800; color: var(--rose-primary);">₹{{ structure.total_amount|floatformat:2 }}</span>
+              </div>
+              <a href="{% url 'fees:fee_structure_builder_edit' structure.id %}" class="btn btn-primary btn-sm" title="Edit entire fee structure and all installments on a single screen">
+                ✏️ Edit Plan &amp; Installments
+              </a>
+              <a href="{% url 'fees:fee_installment_create' %}?structure_id={{ structure.id }}" class="btn btn-secondary btn-sm" title="Add installment under this structure">
+                + Add Installment
+              </a>
+              <a href="{% url 'fees:fee_structure_delete' structure.id %}" class="btn btn-secondary btn-sm" style="color: var(--coral-primary);" title="Delete plan">
+                🗑️
+              </a>
+            </div>
+          </div>
+
+          <!-- Installments Table -->
+          <div class="table-responsive">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th style="width: 50px;">#</th>
+                  <th>Installment Title</th>
+                  <th>Amount</th>
+                  <th>Due Date</th>
+                  <th>Target Scope</th>
+                  <th>Defaulter Tracker</th>
+                  <th style="text-align: right;">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for inst in structure.installments.all %}
+                  <tr style="{% if inst.is_current_due %}background: var(--rose-pastel); font-weight: 600;{% endif %}">
+                    <td><b>{{ inst.installment_number }}</b></td>
+                    <td>
+                      {{ inst.title }}
+                      {% if inst.month and inst.year %}
+                        <span style="font-size: 0.75rem; color: var(--text-muted); display: block;">Billing: {{ inst.month }}/{{ inst.year }}</span>
+                      {% endif %}
+                    </td>
+                    <td><span style="font-weight: 700; color: var(--rose-primary);">₹{{ inst.amount|floatformat:2 }}</span></td>
+                    <td>{{ inst.due_date|date:"d M Y" }}</td>
+                    <td>
+                      {% if inst.requires_vehicle %}
+                        <span class="badge bg-pastel-amber">🚌 Vehicle Opted Only</span>
+                      {% else %}
+                        <span class="badge bg-pastel-sky">All Students</span>
+                      {% endif %}
+                    </td>
+                    <td>
+                      {% if inst.is_current_due %}
+                        <span class="badge bg-pastel-rose" style="font-weight: 700;">🟢 Active Due Target</span>
+                      {% else %}
+                        <div style="display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;">
+                          {% if inst.due_status == 'overdue' %}
+                            <span class="badge bg-pastel-amber" style="font-size: 0.72rem;">Past Due</span>
+                          {% else %}
+                            <span class="badge bg-pastel-sky" style="font-size: 0.72rem;">Upcoming ({{ inst.days_until_due }}d)</span>
+                          {% endif %}
+                          <a href="{% url 'fees:fee_installment_set_active' inst.id %}" class="btn btn-secondary btn-sm" style="font-size: 0.7rem; padding: 0.15rem 0.45rem;" title="Mark this as the active due installment for tracking defaulters">
+                            Set Active
+                          </a>
+                        </div>
+                      {% endif %}
+                    </td>
+                    <td style="text-align: right;">
+                      <div style="display: flex; gap: 0.35rem; justify-content: flex-end;">
+                        <a href="{% url 'fees:fee_defaulters_list' %}?installment_id={{ inst.id }}" class="btn btn-secondary btn-sm" style="font-size: 0.75rem; padding: 0.25rem 0.6rem;" title="View Paid vs Unpaid">
+                          Defaulters &rarr;
+                        </a>
+                        <a href="{% url 'fees:fee_installment_edit' inst.id %}" class="btn btn-secondary btn-sm" style="font-size: 0.75rem; padding: 0.25rem 0.6rem;" title="Edit installment">
+                          Edit
+                        </a>
+                        <a href="{% url 'fees:fee_installment_delete' inst.id %}" class="btn btn-secondary btn-sm" style="font-size: 0.75rem; padding: 0.25rem 0.6rem; color: var(--coral-primary);" title="Delete installment">
+                          🗑️
+                        </a>
+                      </div>
+                    </td>
+                  </tr>
+                {% empty %}
+                  <tr>
+                    <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
+                      No installments configured yet for this plan.
+                      <a href="{% url 'fees:fee_structure_builder_edit' structure.id %}" style="color: var(--rose-primary); font-weight: 600; margin-left: 0.5rem;">
+                        + Build Installment Schedule
+                      </a>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="bento-card col-12" style="text-align: center; padding: 3rem 1.5rem;">
+      <div style="font-size: 2.5rem; margin-bottom: 1rem;">📋</div>
+      <h3 style="font-size: 1.25rem; margin-bottom: 0.5rem;">No Fee Structures Configured</h3>
+      <p style="color: var(--text-muted); font-size: 0.88rem; max-width: 500px; margin: 0 auto 1.5rem;">
+        Get started by creating your first academic year fee structure (e.g. Plus One Humanities Course Fee or Vehicle Transportation Fee).
+      </p>
+      <a href="{% url 'fees:fee_structure_builder' %}" class="btn btn-primary">
+        + Create First Fee Structure &amp; Installments
+      </a>
+    </div>
+  {% endif %}
+</div>
+
+<!-- Section 2: Monthly Vehicle Transportation & Bus Stops Master -->
+<div style="margin-bottom: 2.5rem;">
+  <div class="bento-card col-12" style="border-left: 5px solid var(--amber-primary);">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.25rem;">
+      <div>
+        <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.25rem;">
+          <h2 style="font-size: 1.35rem; font-weight: 700; margin: 0;">🚌 Monthly Vehicle Transportation &amp; Bus Stop Master</h2>
+          <span class="badge bg-pastel-amber">Monthly Recurring Fee</span>
+          <span class="badge bg-pastel-sky">Due on {{ vehicle_setting.due_day_of_month }}th of Month</span>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">
+          Fixed fee per bus stop billed every month. Admin can customize partial usage for any student by reducing exact ₹ or %.
+        </p>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+        <a href="{% url 'fees:vehicle_fee_dashboard' %}" class="btn btn-primary btn-sm" style="font-weight: 700;">
+          Open Vehicle Ledger &amp; Defaulters &rarr;
+        </a>
+        <a href="{% url 'fees:bus_stop_create' %}" class="btn btn-secondary btn-sm">
+          + Add Bus Stop
+        </a>
+        <a href="{% url 'fees:vehicle_pass_create' %}" class="btn btn-secondary btn-sm">
+          + Assign Student Pass
+        </a>
+      </div>
+    </div>
+
+    <!-- Bus Stops Table -->
+    <div class="table-responsive">
+      <table class="custom-table">
+        <thead>
+          <tr>
+            <th style="width: 40px;">#</th>
+            <th>Bus Stop Name</th>
+            <th>Route / Location</th>
+            <th>Fixed Monthly Fee</th>
+            <th>Pickup / Drop</th>
+            <th>Enrolled Students</th>
+            <th>Status</th>
+            <th style="text-align: right;">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for stop in bus_stops %}
+            <tr>
+              <td><b>{{ forloop.counter }}</b></td>
+              <td><b>{{ stop.stop_name }}</b></td>
+              <td>{{ stop.route_name|default:"General Route" }}</td>
+              <td>
+                <span style="font-size: 1.1rem; font-weight: 800; color: var(--amber-primary);">
+                  ₹{{ stop.monthly_fee|floatformat:2 }}
+                </span>
+                <span style="font-size: 0.72rem; color: var(--text-muted);">/ mo</span>
+              </td>
+              <td>
+                <span style="font-size: 0.78rem; color: var(--text-muted);">
+                  {% if stop.pickup_time %}{{ stop.pickup_time }}{% endif %}
+                  {% if stop.drop_time %} &bull; {{ stop.drop_time }}{% endif %}
+                  {% if not stop.pickup_time and not stop.drop_time %}—{% endif %}
+                </span>
+              </td>
+              <td>
+                <span class="badge bg-pastel-sky" style="font-weight: 700;">
+                  {{ stop.assigned_students_count }} student(s)
+                </span>
+              </td>
+              <td>
+                {% if stop.is_active %}
+                  <span class="badge bg-pastel-sage">Active</span>
+                {% else %}
+                  <span class="badge bg-pastel-amber">Inactive</span>
+                {% endif %}
+              </td>
+              <td style="text-align: right;">
+                <div style="display: flex; gap: 0.35rem; justify-content: flex-end;">
+                  <a href="{% url 'fees:bus_stop_edit' stop.id %}" class="btn btn-secondary btn-sm" style="font-size: 0.75rem; padding: 0.2rem 0.5rem;">
+                    Edit Rate
+                  </a>
+                  <a href="{% url 'fees:vehicle_fee_dashboard' %}?bus_stop_id={{ stop.id }}" class="btn btn-secondary btn-sm" style="font-size: 0.75rem; padding: 0.2rem 0.5rem;">
+                    Defaulters &rarr;
+                  </a>
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
+                No bus stops configured yet. <a href="{% url 'fees:bus_stop_create' %}" style="color: var(--amber-primary); font-weight: 700;">+ Add First Bus Stop</a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Section 3: Fee Categories Master -->
+<div style="margin-bottom: 2rem;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+    <div>
+      <h2 style="font-size: 1.35rem; font-weight: 700;">Fee Categories Master</h2>
+      <p style="font-size: 0.85rem; color: var(--text-muted);">Categories defining installment-wise course fees, monthly vehicle recurring dues, and one-time fees</p>
+    </div>
+    <a href="{% url 'fees:fee_category_create' %}" class="btn btn-secondary btn-sm">+ New Category</a>
+  </div>
+
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Category Name</th>
+          <th>Billing Model</th>
+          <th>Description</th>
+          <th>Attached Fee Plans</th>
+          <th style="text-align: right;">Admin Setup</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for cat in categories %}
+          <tr>
+            <td><b>{{ cat.name }}</b></td>
+            <td>
+              {% if cat.fee_type == 'installment' %}
+                <span class="badge bg-pastel-rose">Installment-wise (Course Fee)</span>
+              {% elif cat.fee_type == 'monthly' %}
+                <span class="badge bg-pastel-amber">Monthly Recurring (Vehicle)</span>
+              {% else %}
+                <span class="badge bg-pastel-sky">One-time Fee</span>
+              {% endif %}
+            </td>
+            <td>{{ cat.description|default:"—" }}</td>
+            <td><b>{{ cat.structures.count }}</b> active plan(s)</td>
+            <td style="text-align: right;">
+              <a href="/admin/fees/feecategory/{{ cat.id }}/change/" target="_blank" class="btn btn-secondary btn-sm" style="font-size: 0.75rem;">
+                Edit in Admin &nearr;
+              </a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">No fee categories found.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

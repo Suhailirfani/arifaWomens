@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+
+{% block title %}Progress Report - {{ student.full_name }} | {{ exam.name }}{% endblock %}
+
+{% block content %}
+<div style="max-width: 860px; margin: 0 auto;">
+  <!-- Top Action Bar -->
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.75rem;">
+    <a href="{% url 'dashboard:student_dashboard_detail' student.id %}" class="btn btn-secondary btn-sm">&larr; Student Dashboard</a>
+    
+    <div style="display: flex; gap: 0.5rem;">
+      <button onclick="window.print();" class="btn btn-secondary btn-sm">🖨️ Print Report</button>
+      <a href="{% url 'examinations:download_progress_report_pdf' student.id exam.id %}" class="btn btn-primary btn-sm">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        Download Official PDF Report
+      </a>
+    </div>
+  </div>
+
+  <!-- Report Card Sheet -->
+  <div class="report-card-paper">
+    <!-- Header -->
+    <div class="report-header">
+      <div class="brand-logo-badge" style="margin: 0 auto 0.5rem; width: 48px; height: 48px; font-size: 1.35rem;">A</div>
+      <h2>ARIFA WOMEN'S ACADEMY</h2>
+      <p style="font-size: 0.85rem; color: #64748B;">Kodampuzha, Kozhikode, Kerala - 673014 &bull; Secondary &amp; Higher Secondary</p>
+      <div style="margin-top: 0.75rem;">
+        <span class="badge bg-pastel-rose" style="font-size: 0.9rem; padding: 0.4rem 1rem;">
+          PROGRESS REPORT CARD &bull; {{ exam.name|upper }}
+        </span>
+      </div>
+      <p style="font-size: 0.8rem; color: #64748B; margin-top: 0.4rem;">Academic Session: <b>{{ exam.academic_year.name }}</b></p>
+    </div>
+
+    <!-- Student Meta Details -->
+    <div class="report-meta-grid" style="background: #F8F9FC; padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid #E2E8F0;">
+      <div><span style="color: #64748B;">Student Name:</span> <b style="color: #0F172A; font-size: 1rem;">{{ student.full_name }}</b></div>
+      <div><span style="color: #64748B;">Admission Number:</span> <b>{{ student.admission_number }}</b></div>
+      <div><span style="color: #64748B;">Class &amp; Stream:</span> <b>{{ student.current_class.display_name }}</b></div>
+      <div><span style="color: #64748B;">Roll Number:</span> <b>{{ student.roll_number|default:"-" }}</b></div>
+      <div><span style="color: #64748B;">Guardian's Name:</span> <b>{{ student.father_or_guardian_name }}</b></div>
+      <div><span style="color: #64748B;">Class Teacher:</span> <b>{{ student.current_class.class_teacher.full_name|default:"Faculty" }}</b></div>
+    </div>
+
+    <!-- Marks Table -->
+    <div style="margin: 1.5rem 0;" class="table-responsive">
+      <table class="custom-table" style="border: 1px solid #CBD5E1; border-radius: var(--radius-sm);">
+        <thead>
+          <tr style="background: #9F1239; color: white;">
+            <th style="color: white; background: #9F1239;">#</th>
+            <th style="color: white; background: #9F1239;">Subject Name</th>
+            <th style="color: white; background: #9F1239; text-align: center;">Max Marks</th>
+            <th style="color: white; background: #9F1239; text-align: center;">Pass Marks</th>
+            <th style="color: white; background: #9F1239; text-align: center;">Marks Scored</th>
+            <th style="color: white; background: #9F1239; text-align: center;">Percentage</th>
+            <th style="color: white; background: #9F1239; text-align: center;">Grade</th>
+            <th style="color: white; background: #9F1239;">Remarks</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for mr in marks_records %}
+            <tr>
+              <td>{{ forloop.counter }}</td>
+              <td><b>{{ mr.exam_schedule.subject.name }}</b></td>
+              <td style="text-align: center;">{{ mr.exam_schedule.max_marks|floatformat:0 }}</td>
+              <td style="text-align: center;">{{ mr.exam_schedule.pass_marks|floatformat:0 }}</td>
+              <td style="text-align: center;">
+                {% if mr.is_absent %}
+                  <span style="color: #DC2626; font-weight: 700;">ABS</span>
+                {% else %}
+                  <b>{{ mr.marks_obtained|floatformat:1 }}</b>
+                {% endif %}
+              </td>
+              <td style="text-align: center;">{{ mr.percentage }}%</td>
+              <td style="text-align: center;">
+                <span class="badge {% if mr.percentage >= 80 %}bg-pastel-sage{% elif mr.percentage >= 60 %}bg-pastel-lavender{% else %}bg-pastel-amber{% endif %}">
+                  {{ mr.letter_grade }}
+                </span>
+              </td>
+              <td style="font-size: 0.8rem; color: #64748B;">{{ mr.remarks|default:"Good" }}</td>
+            </tr>
+          {% endfor %}
+          <!-- Grand Total Row -->
+          <tr style="background: #EDE9FE; font-weight: 800;">
+            <td colspan="2">GRAND TOTAL</td>
+            <td style="text-align: center;">{{ total_max|floatformat:0 }}</td>
+            <td style="text-align: center;">-</td>
+            <td style="text-align: center; color: #059669; font-size: 1.05rem;">{{ total_obtained|floatformat:1 }}</td>
+            <td style="text-align: center; font-size: 1.05rem;">{{ percentage }}%</td>
+            <td style="text-align: center;">
+              <span class="badge bg-pastel-sage" style="font-size: 0.85rem;">
+                {% if percentage >= 80 %}A{% elif percentage >= 60 %}B{% else %}C{% endif %}
+              </span>
+            </td>
+            <td style="color: #059669;">
+              {% if percentage >= 35 %}Passed &amp; Promoted{% else %}Needs Improvement{% endif %}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Attendance Summary in Report Card -->
+    <div style="background: #F8FAFC; border: 1px solid #CBD5E1; border-radius: var(--radius-md); padding: 1rem; margin-bottom: 2.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+      <div>
+        <span style="font-size: 0.8rem; color: #64748B; font-weight: 700; text-transform: uppercase;">Attendance Record</span>
+        <div style="font-size: 0.9rem; margin-top: 0.2rem;">
+          Monthly Presence: <b style="color: #059669;">{{ monthly_stats.percentage }}%</b> ({{ monthly_stats.present_days }}/{{ monthly_stats.total_days }} working days)
+        </div>
+      </div>
+
+      <div style="text-align: right;">
+        <span style="font-size: 0.8rem; color: #64748B; font-weight: 700; text-transform: uppercase;">Overall Result</span>
+        <div style="font-size: 1.1rem; font-weight: 800; color: #059669;">
+          {% if percentage >= 85 %}DISTINCTION{% elif percentage >= 60 %}FIRST CLASS{% elif percentage >= 35 %}PASSED{% else %}NEEDS ASSISTANCE{% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Signatures -->
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; text-align: center; margin-top: 4rem; font-size: 0.85rem; color: #64748B;">
+      <div>
+        <div style="border-top: 1px dashed #94A3B8; padding-top: 0.5rem; font-weight: 700;">Class Teacher</div>
+      </div>
+      <div>
+        <div style="border-top: 1px dashed #94A3B8; padding-top: 0.5rem; font-weight: 700;">Parent / Guardian</div>
+      </div>
+      <div>
+        <div style="border-top: 1px dashed #94A3B8; padding-top: 0.5rem; font-weight: 700;">Principal / Headmistress</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

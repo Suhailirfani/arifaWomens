@@ -1,0 +1,206 @@
+{% extends 'base.html' %}
+
+{% block title %}Administrator Dashboard | Arifa Women's Academy{% endblock %}
+
+{% block content %}
+<!-- Top Header & Welcome -->
+<div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
+  <div>
+    <span class="badge bg-pastel-rose" style="margin-bottom: 0.4rem;">ADMINISTRATIVE CONTROL</span>
+    <h1 style="font-size: 1.85rem;">Welcome, {{ user.get_full_name|default:user.username }}</h1>
+    <p style="color: var(--text-muted); font-size: 0.88rem;">Overview for {{ today|date:"l, d F Y" }}</p>
+  </div>
+
+  <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+    <a href="{% url 'students:student_create' %}" class="btn btn-primary btn-sm">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+      Add Student
+    </a>
+    <a href="{% url 'students:student_bulk_upload' %}" class="btn btn-secondary btn-sm">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+      Bulk Excel Upload
+    </a>
+    <a href="{% url 'fees:fee_defaulters_list' %}" class="btn btn-pastel-rose btn-sm">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+      Fee Defaulters PDF
+    </a>
+  </div>
+</div>
+
+<!-- Bento KPI Stats Row -->
+<div class="bento-grid">
+  <!-- Card 1: Students -->
+  <a href="{% url 'students:student_list' %}" class="bento-card col-3 col-md-6" style="text-decoration: none; color: inherit; cursor: pointer;" title="Open Students List">
+    <div class="stat-widget">
+      <div class="stat-info">
+        <span class="stat-label" style="display: flex; align-items: center; justify-content: space-between;">Total Students <span style="font-size: 0.8rem; color: var(--rose-primary); font-weight: 700;">&rarr;</span></span>
+        <span class="stat-value">{{ total_students }}</span>
+        <span class="stat-subtext"><span style="color: var(--sage-primary);">●</span> Active Enrolment</span>
+      </div>
+      <div class="stat-icon-wrapper bg-pastel-rose">👩‍🎓</div>
+    </div>
+  </a>
+
+  <!-- Card 2: Faculty & Staff -->
+  <a href="{% url 'staff:staff_list' %}" class="bento-card col-3 col-md-6" style="text-decoration: none; color: inherit; cursor: pointer;" title="Open Faculty & Staff List">
+    <div class="stat-widget">
+      <div class="stat-info">
+        <span class="stat-label" style="display: flex; align-items: center; justify-content: space-between;">Faculty & Staff <span style="font-size: 0.8rem; color: var(--lavender-primary); font-weight: 700;">&rarr;</span></span>
+        <span class="stat-value">{{ total_staff }}</span>
+        <span class="stat-subtext"><span style="color: var(--lavender-primary);">●</span> High School & HSS</span>
+      </div>
+      <div class="stat-icon-wrapper bg-pastel-lavender">👩‍🏫</div>
+    </div>
+  </a>
+
+  <!-- Card 3: Today's Attendance Rate -->
+  <div class="bento-card col-3 col-md-6">
+    <div class="stat-widget">
+      <div class="stat-info">
+        <span class="stat-label">Today's Attendance</span>
+        <span class="stat-value" style="color: var(--sage-primary);">{{ today_rate }}%</span>
+        <span class="stat-subtext">{{ today_present }} Present &bull; {{ today_absent }} Absent</span>
+      </div>
+      <div class="stat-icon-wrapper bg-pastel-sage">📊</div>
+    </div>
+  </div>
+
+  <!-- Card 4: Fee Active Collections -->
+  <div class="bento-card col-3 col-md-6">
+    <div class="stat-widget">
+      <div class="stat-info">
+        <span class="stat-label">Current Due Fee</span>
+        <span class="stat-value" style="font-size: 1.55rem; color: var(--rose-primary);">₹{{ total_collected_amount|floatformat:0 }}</span>
+        <span class="stat-subtext">{{ paid_count }} Paid &bull; {{ unpaid_count }} Pending</span>
+      </div>
+      <div class="stat-icon-wrapper bg-pastel-amber">💳</div>
+    </div>
+  </div>
+</div>
+
+<!-- Bento Row 2: Fee Installment Defaulters Snapshot & Quick Actions -->
+<div class="bento-grid">
+  <!-- Defaulter & Fee Collection Card -->
+  <div class="bento-card col-8 col-md-12">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+      <div>
+        <h3 style="font-size: 1.15rem;">Active Fee Due: {{ current_due_inst.title|default:"Course Fee Installment" }}</h3>
+        <p style="font-size: 0.82rem; color: var(--text-muted);">
+          Due Date: <b>{{ current_due_inst.due_date|date:"d M Y"|default:"-" }}</b> &bull; Amount: <b>₹{{ current_due_inst.amount|default:"0" }}</b>
+        </p>
+      </div>
+      <div style="display: flex; gap: 0.5rem;">
+        <a href="{% url 'fees:fee_defaulters_list' %}" class="btn btn-secondary btn-sm">Full Defaulter List</a>
+        <a href="{% url 'fees:download_defaulters_pdf' %}" class="btn btn-primary btn-sm">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          Download PDF
+        </a>
+      </div>
+    </div>
+
+    <!-- Progress / Collection Bar -->
+    <div style="margin-bottom: 1.25rem;">
+      <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 700; margin-bottom: 0.4rem;">
+        <span>Collected: ₹{{ total_collected_amount|floatformat:2 }} ({{ paid_count }} Students)</span>
+        <span style="color: var(--coral-primary);">Pending: ₹{{ total_pending_amount|floatformat:2 }} ({{ unpaid_count }} Defaulters)</span>
+      </div>
+      <div style="height: 12px; background: var(--bg-subtle); border-radius: var(--radius-full); overflow: hidden; display: flex;">
+        {% if paid_count or unpaid_count %}
+          <div style="width: {% widthratio paid_count paid_count|add:unpaid_count 100 %}%; background: var(--sage-primary);"></div>
+          <div style="width: {% widthratio unpaid_count paid_count|add:unpaid_count 100 %}%; background: var(--coral-primary);"></div>
+        {% else %}
+          <div style="width: 100%; background: var(--border-color);"></div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Quick action links -->
+    <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: auto; padding-top: 0.75rem; border-top: 1px solid var(--border-color);">
+      <a href="{% url 'fees:fee_collect' %}" class="btn btn-pastel-sage btn-sm">+ Collect Fee Payment</a>
+      <a href="{% url 'fees:fee_dashboard' %}" class="btn btn-secondary btn-sm">Fee Analytics &amp; Reports &rarr;</a>
+    </div>
+  </div>
+
+  <!-- Academy Quick Operations Bento Box -->
+  <div class="bento-card col-4 col-md-12" style="background: linear-gradient(135deg, var(--bg-surface), var(--bg-subtle));">
+    <h3 style="font-size: 1.15rem; margin-bottom: 0.75rem;">Quick Operations</h3>
+    <div style="display: flex; flex-direction: column; gap: 0.6rem;">
+      <a href="{% url 'attendance:take_attendance' %}" class="btn btn-secondary" style="justify-content: flex-start;">
+        <span style="margin-right: 0.5rem;">📋</span> Take Today's Attendance
+      </a>
+      <a href="{% url 'students:student_bulk_upload' %}" class="btn btn-secondary" style="justify-content: flex-start;">
+        <span style="margin-right: 0.5rem;">📊</span> Excel Student Bulk Upload
+      </a>
+      <a href="{% url 'staff:staff_create' %}" class="btn btn-secondary" style="justify-content: flex-start;">
+        <span style="margin-right: 0.5rem;">👩‍🏫</span> Register New Faculty / Staff
+      </a>
+      <a href="{% url 'examinations:marks_entry' %}" class="btn btn-secondary" style="justify-content: flex-start;">
+        <span style="margin-right: 0.5rem;">📝</span> Examination Marks Entry
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Bento Row 3: Class-wise Today's Attendance & Class Dashboards -->
+<div class="bento-card col-12" style="margin-bottom: 2rem;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+    <div>
+      <h3 style="font-size: 1.25rem;">Class-Wise Attendance &amp; Class Dashboards</h3>
+      <p style="font-size: 0.82rem; color: var(--text-muted);">High School &amp; Higher Secondary (Humanities &amp; Commerce)</p>
+    </div>
+    <span class="badge bg-pastel-sage">Daily Live Log</span>
+  </div>
+
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Class &amp; Stream</th>
+          <th>Grade / Level</th>
+          <th>Class Teacher</th>
+          <th>Total Students</th>
+          <th>Present Today</th>
+          <th>Absent Today</th>
+          <th>Attendance Rate</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for cs in class_stats %}
+          <tr>
+            <td>
+              <a href="{% url 'dashboard:class_dashboard' cs.class.id %}" style="font-weight: 700; color: var(--rose-primary);">
+                {{ cs.class.display_name }}
+              </a>
+              <div style="font-size: 0.75rem; color: var(--text-subtle);">Room: {{ cs.class.room_number|default:"-" }}</div>
+            </td>
+            <td>
+              <span class="badge {% if cs.class.grade.level_category == 'higher_secondary' %}bg-pastel-lavender{% else %}bg-pastel-sage{% endif %}">
+                {{ cs.class.grade.get_level_category_display }}
+              </span>
+            </td>
+            <td>{{ cs.class.class_teacher.full_name|default:"Not Assigned" }}</td>
+            <td><b>{{ cs.total }}</b></td>
+            <td><span style="color: var(--sage-primary); font-weight: 700;">{{ cs.present }}</span></td>
+            <td><span style="color: var(--coral-primary); font-weight: 700;">{{ cs.absent }}</span></td>
+            <td>
+              {% if cs.is_taken %}
+                <span class="badge {% if cs.rate >= 80 %}badge-present{% elif cs.rate >= 60 %}badge-late{% else %}badge-absent{% endif %}">
+                  {{ cs.rate }}%
+                </span>
+              {% else %}
+                <span class="badge" style="background: var(--bg-subtle); color: var(--text-subtle);">Not Marked</span>
+              {% endif %}
+            </td>
+            <td>
+              <a href="{% url 'dashboard:class_dashboard' cs.class.id %}" class="btn btn-secondary btn-sm">
+                Class Dashboard &rarr;
+              </a>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

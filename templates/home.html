@@ -1,0 +1,243 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Home | Arifa Women's Academy{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+  <div class="hero-pill">
+    <span>🌸</span> Empowering Young Women Through Excellence in Education
+  </div>
+  <h1 class="hero-title">
+    Arifa Women's Academy
+    <span style="display: block; font-size: 0.65em; font-family: var(--font-heading); font-weight: 700; color: var(--rose-primary);">
+      Kodampuzha, Kozhikode
+    </span>
+  </h1>
+  <p class="hero-subtitle">
+    A premier educational institution offering integrated High School and Higher Secondary education in Humanities & Commerce with value-based academic distinction.
+  </p>
+
+  <div class="hero-cta-group">
+    {% if user.is_authenticated %}
+      <a href="{% url 'redirect_dashboard' %}" class="btn btn-primary btn-lg">
+        Go to My Dashboard
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+      </a>
+    {% else %}
+      <a href="{% url 'accounts:login' %}" class="btn btn-primary btn-lg">
+        Access Portal Login
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+      </a>
+    {% endif %}
+    <a href="#portals-section" class="btn btn-secondary btn-lg">Explore Portals</a>
+  </div>
+</section>
+
+<!-- Bento Grid 1: Key Academic Streams & Fast Stats -->
+<div class="bento-grid">
+  <!-- Card 1: Higher Secondary Stream -->
+  <div class="bento-card col-4 col-md-4" style="background: linear-gradient(135deg, var(--bg-surface), var(--rose-pastel)); border-color: rgba(226, 91, 120, 0.3);">
+    <div class="stat-icon-wrapper bg-pastel-rose" style="margin-bottom: 1rem;">
+      📚
+    </div>
+    <h3 style="font-size: 1.25rem; margin-bottom: 0.5rem;">Higher Secondary (HSS)</h3>
+    <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1rem;">
+      Plus One & Plus Two programs with specialized streams in <b>Humanities</b> and <b>Commerce</b> tailored for university preparedness.
+    </p>
+    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: auto;">
+      <span class="badge bg-pastel-rose">+1 Humanities</span>
+      <span class="badge bg-pastel-lavender">+1 Commerce</span>
+      <span class="badge bg-pastel-rose">+2 Humanities</span>
+      <span class="badge bg-pastel-lavender">+2 Commerce</span>
+    </div>
+  </div>
+
+  <!-- Card 2: High School Stream -->
+  <div class="bento-card col-4 col-md-4" style="background: linear-gradient(135deg, var(--bg-surface), var(--sage-pastel)); border-color: rgba(16, 185, 129, 0.3);">
+    <div class="stat-icon-wrapper bg-pastel-sage" style="margin-bottom: 1rem;">
+      🌱
+    </div>
+    <h3 style="font-size: 1.25rem; margin-bottom: 0.5rem;">High School Section</h3>
+    <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1rem;">
+      Foundational schooling for <b>Class 8, Class 9, and Class 10</b> focusing on holistic education, languages, sciences, and ethics.
+    </p>
+    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: auto;">
+      <span class="badge bg-pastel-sage">Class 8</span>
+      <span class="badge bg-pastel-sage">Class 9</span>
+      <span class="badge bg-pastel-sage">Class 10 (SSLC)</span>
+    </div>
+  </div>
+
+  <!-- Card 3: Academy Key Metrics -->
+  <div class="bento-card col-4 col-md-4" style="background: linear-gradient(135deg, var(--bg-surface), var(--lavender-pastel)); border-color: rgba(139, 92, 246, 0.3);">
+    <div class="stat-icon-wrapper bg-pastel-lavender" style="margin-bottom: 1rem;">
+      🏛️
+    </div>
+    <h3 style="font-size: 1.25rem; margin-bottom: 0.5rem;">Academy at a Glance</h3>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 0.75rem;">
+      <a href="{% url 'students:student_list' %}" class="stat-glance-link" title="Open Students List" style="text-decoration: none; color: inherit; background: var(--bg-surface); padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); display: block; cursor: pointer; transition: transform var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);">
+        <span style="font-size: 1.5rem; font-weight: 800; color: var(--rose-primary); display: flex; align-items: center; justify-content: space-between;">
+          {{ total_students }}
+          <span style="font-size: 0.85rem; opacity: 0.7;">&rarr;</span>
+        </span>
+        <span style="display: block; font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">Enrolled Students</span>
+      </a>
+      <a href="{% url 'staff:staff_list' %}" class="stat-glance-link" title="Open Faculty & Staff List" style="text-decoration: none; color: inherit; background: var(--bg-surface); padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); display: block; cursor: pointer; transition: transform var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);">
+        <span style="font-size: 1.5rem; font-weight: 800; color: var(--lavender-primary); display: flex; align-items: center; justify-content: space-between;">
+          {{ total_staff }}
+          <span style="font-size: 0.85rem; opacity: 0.7;">&rarr;</span>
+        </span>
+        <span style="display: block; font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">Faculty & Staff</span>
+      </a>
+    </div>
+    <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.85rem;">
+      📍 Campus Location: Kodampuzha, Kozhikode District, Kerala.
+    </p>
+  </div>
+</div>
+
+<!-- Section: Multi-Role Portals & 1-Click Access -->
+<div id="portals-section" style="margin-top: 3.5rem; margin-bottom: 1.5rem;">
+  <div style="text-align: center; max-width: 650px; margin: 0 auto 2.5rem;">
+    <span class="badge bg-pastel-rose" style="margin-bottom: 0.75rem;">ROLE-BASED ECOSYSTEM</span>
+    <h2 style="font-size: 2rem; margin-bottom: 0.5rem;">Multi-User Portals & Dashboards</h2>
+    <p style="color: var(--text-muted); font-size: 0.95rem;">
+      Tailored bento workspaces designed specifically for Administrators, Office Staff, Teachers, and Students / Parents.
+    </p>
+  </div>
+
+  <div class="bento-grid">
+    <!-- Portal 1: Administrator -->
+    <div class="bento-card col-3 col-md-6 portal-card">
+      <div>
+        <div class="portal-badge bg-pastel-rose">🛡️</div>
+        <span class="badge bg-pastel-rose" style="margin-bottom: 0.5rem;">ADMIN PORTAL</span>
+        <h3 style="font-size: 1.15rem; margin-bottom: 0.4rem;">Administrator</h3>
+        <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1rem;">
+          Holistic institution oversight, fee defaulters PDF reports, class attendance stats, staff register, and academic calendar.
+        </p>
+      </div>
+      <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+        <span style="font-size: 0.75rem; color: var(--text-subtle); display: block; margin-bottom: 0.5rem;">Demo: <code>admin</code> / <code>admin123</code></span>
+        <a href="{% url 'accounts:login' %}?role=admin" class="btn btn-pastel-rose btn-sm" style="width: 100%;">
+          Login as Admin &rarr;
+        </a>
+      </div>
+    </div>
+
+    <!-- Portal 2: Office Staff -->
+    <div class="bento-card col-3 col-md-6 portal-card">
+      <div>
+        <div class="portal-badge bg-pastel-lavender">💼</div>
+        <span class="badge bg-pastel-lavender" style="margin-bottom: 0.5rem;">OFFICE STAFF</span>
+        <h3 style="font-size: 1.15rem; margin-bottom: 0.4rem;">Office & Admissions</h3>
+        <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1rem;">
+          Student register single entry & bulk Excel upload, fee collections, receipt generation, and monthly bus fee tracking.
+        </p>
+      </div>
+      <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+        <span style="font-size: 0.75rem; color: var(--text-subtle); display: block; margin-bottom: 0.5rem;">Demo: <code>staff</code> / <code>staff123</code></span>
+        <a href="{% url 'accounts:login' %}?role=staff" class="btn btn-pastel-lavender btn-sm" style="width: 100%;">
+          Login as Staff &rarr;
+        </a>
+      </div>
+    </div>
+
+    <!-- Portal 3: Teacher -->
+    <div class="bento-card col-3 col-md-6 portal-card">
+      <div>
+        <div class="portal-badge bg-pastel-sage">👩‍🏫</div>
+        <span class="badge bg-pastel-sage" style="margin-bottom: 0.5rem;">TEACHER PORTAL</span>
+        <h3 style="font-size: 1.15rem; margin-bottom: 0.4rem;">Faculty & Mentors</h3>
+        <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1rem;">
+          Daily class-wise attendance marking with 1-click toggles, exam marks entry, and dedicated class dashboard analysis.
+        </p>
+      </div>
+      <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+        <span style="font-size: 0.75rem; color: var(--text-subtle); display: block; margin-bottom: 0.5rem;">Demo: <code>teacher</code> / <code>teacher123</code></span>
+        <a href="{% url 'accounts:login' %}?role=teacher" class="btn btn-pastel-sage btn-sm" style="width: 100%;">
+          Login as Teacher &rarr;
+        </a>
+      </div>
+    </div>
+
+    <!-- Portal 4: Parent / Student -->
+    <div class="bento-card col-3 col-md-6 portal-card">
+      <div>
+        <div class="portal-badge bg-pastel-sky">🎓</div>
+        <span class="badge bg-pastel-sky" style="margin-bottom: 0.5rem;">STUDENT & PARENT</span>
+        <h3 style="font-size: 1.15rem; margin-bottom: 0.4rem;">Student / Parent</h3>
+        <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1rem;">
+          Real-time daily presence badge, calendar heatmap, monthly/annual attendance stats, exam marks, and progress report card PDF.
+        </p>
+      </div>
+      <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+        <span style="font-size: 0.75rem; color: var(--text-subtle); display: block; margin-bottom: 0.5rem;">Demo: <code>student</code> / <code>student123</code></span>
+        <a href="{% url 'accounts:login' %}?role=student" class="btn btn-secondary btn-sm" style="width: 100%;">
+          Login as Student &rarr;
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Bento Grid 3: Key Institutional Features -->
+<div style="margin-top: 3.5rem;">
+  <div style="text-align: center; max-width: 600px; margin: 0 auto 2.5rem;">
+    <h2 style="font-size: 2rem; margin-bottom: 0.5rem;">Engineered for Precision & Clarity</h2>
+    <p style="color: var(--text-muted);">
+      Every feature built to streamline administrative workflows and ensure total transparency for students and guardians.
+    </p>
+  </div>
+
+  <div class="bento-grid">
+    <!-- Feature 1: Attendance Heatmap -->
+    <div class="bento-card col-6 col-md-12">
+      <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
+        <span class="stat-icon-wrapper bg-pastel-sage">🗓️</span>
+        <div>
+          <h3 style="font-size: 1.15rem;">Calendar Heatmap for Attendance</h3>
+          <p style="font-size: 0.82rem; color: var(--text-muted);">Green for Present &bull; Red for Absent</p>
+        </div>
+      </div>
+      <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+        Inspired by modern contribution grids, students and administrators can view complete day-by-day attendance trends at a glance.
+      </p>
+      <!-- Simulated Mini Heatmap Demo -->
+      <div style="background: var(--bg-subtle); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+        <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+          {% for i in "1234567890123456789012345678" %}
+            <div style="width: 16px; height: 16px; border-radius: 3px; background: {% cycle '#10B981' '#10B981' '#10B981' '#10B981' '#F43F5E' '#10B981' '#10B981' '#10B981' '#10B981' '#F59E0B' %};"></div>
+          {% endfor %}
+        </div>
+        <div class="heatmap-legend" style="margin-top: 0.75rem;">
+          <div class="legend-item"><span class="legend-box" style="background: #10B981;"></span> Present</div>
+          <div class="legend-item"><span class="legend-box" style="background: #F43F5E;"></span> Absent</div>
+          <div class="legend-item"><span class="legend-box" style="background: #F59E0B;"></span> Late</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Feature 2: Fee Dashboard & Defaulters PDF -->
+    <div class="bento-card col-6 col-md-12">
+      <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
+        <span class="stat-icon-wrapper bg-pastel-rose">📄</span>
+        <div>
+          <h3 style="font-size: 1.15rem;">Fee Management & Defaulters PDF</h3>
+          <p style="font-size: 0.82rem; color: var(--text-muted);">Installment-wise Course Fees & Monthly Vehicle Fees</p>
+        </div>
+      </div>
+      <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+        Track active due installments, immediately filter who paid and who has not paid, and generate instant, official PDF reports for administrative review.
+      </p>
+      <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+        <span class="badge bg-pastel-rose">Instant PDF Generation</span>
+        <span class="badge bg-pastel-lavender">Receipt Printing</span>
+        <span class="badge bg-pastel-amber">Vehicle Route Tracking</span>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

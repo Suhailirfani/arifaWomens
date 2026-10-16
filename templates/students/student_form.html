@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} | Arifa Women's Academy{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 0 auto;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+    <div>
+      <span class="badge bg-pastel-rose" style="margin-bottom: 0.35rem;">STUDENT REGISTRATION</span>
+      <h1 style="font-size: 1.75rem;">{{ title }}</h1>
+    </div>
+    <a href="{% url 'students:student_list' %}" class="btn btn-secondary btn-sm">&larr; Back to Students List</a>
+  </div>
+
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <!-- Academic Placement Box -->
+    <div class="bento-card" style="margin-bottom: 1.5rem;">
+      <h3 style="font-size: 1.15rem; margin-bottom: 1rem; color: var(--rose-primary);">1. Academic Stream &amp; Enrolment</h3>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem;">
+        <div class="form-group">
+          <label class="form-label">Admission Number*</label>
+          {{ form.admission_number }}
+          {% if form.admission_number.errors %}<span style="color: var(--coral-primary); font-size: 0.78rem;">{{ form.admission_number.errors }}</span>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Roll Number</label>
+          {{ form.roll_number }}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Class &amp; Stream* (Grade + Course)</label>
+          {{ form.current_class }}
+          {% if form.current_class.errors %}<span style="color: var(--coral-primary); font-size: 0.78rem;">{{ form.current_class.errors }}</span>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Academic Year*</label>
+          {{ form.academic_year }}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Admission Date</label>
+          {{ form.admission_date }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Personal Profile Box -->
+    <div class="bento-card" style="margin-bottom: 1.5rem;">
+      <h3 style="font-size: 1.15rem; margin-bottom: 1rem; color: var(--lavender-primary);">2. Student Personal Information</h3>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem;">
+        <div class="form-group" style="grid-column: span 2;">
+          <label class="form-label">Full Name of Student*</label>
+          {{ form.full_name }}
+          {% if form.full_name.errors %}<span style="color: var(--coral-primary); font-size: 0.78rem;">{{ form.full_name.errors }}</span>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Date of Birth</label>
+          {{ form.date_of_birth }}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Gender</label>
+          {{ form.gender }}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Blood Group</label>
+          {{ form.blood_group }}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Student Photo</label>
+          {{ form.photo }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Guardian & Contact Box -->
+    <div class="bento-card" style="margin-bottom: 1.5rem;">
+      <h3 style="font-size: 1.15rem; margin-bottom: 1rem; color: var(--sage-primary);">3. Parent / Guardian Details &amp; Address</h3>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem;">
+        <div class="form-group">
+          <label class="form-label">Father / Guardian Name*</label>
+          {{ form.father_or_guardian_name }}
+          {% if form.father_or_guardian_name.errors %}<span style="color: var(--coral-primary); font-size: 0.78rem;">{{ form.father_or_guardian_name.errors }}</span>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Mother's Name</label>
+          {{ form.mother_name }}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Guardian Phone Number*</label>
+          {{ form.guardian_phone }}
+          {% if form.guardian_phone.errors %}<span style="color: var(--coral-primary); font-size: 0.78rem;">{{ form.guardian_phone.errors }}</span>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Guardian Email</label>
+          {{ form.guardian_email }}
+        </div>
+
+        <div class="form-group" style="grid-column: span 2;">
+          <label class="form-label">Residential Address</label>
+          {{ form.address }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Transportation & Logistics Box -->
+    <div class="bento-card" style="margin-bottom: 1.5rem;">
+      <h3 style="font-size: 1.15rem; margin-bottom: 1rem; color: var(--amber-primary);">4. Transportation &amp; Status</h3>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem;">
+        <div class="form-group">
+          <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: 700; cursor: pointer; margin-top: 1rem;">
+            {{ form.vehicle_opted }} Opted for Academy Bus / Vehicle
+          </label>
+          <span style="font-size: 0.75rem; color: var(--text-muted); display: block;">Enables monthly vehicle fee tracking.</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Vehicle Route</label>
+          {{ form.vehicle_route }}
+        </div>
+
+        <div class="form-group">
+          <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: 700; cursor: pointer; margin-top: 1rem;">
+            {{ form.is_active }} Active Student Record
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Submit Button Group -->
+    <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+      <a href="{% url 'students:student_list' %}" class="btn btn-secondary">Cancel</a>
+      <button type="submit" class="btn btn-primary btn-lg">
+        Save Student Record &rarr;
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

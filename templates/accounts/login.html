@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block title %}Portal Login | Arifa Women's Academy{% endblock %}
+
+{% block content %}
+<div style="max-width: 480px; margin: 2rem auto;">
+  <div class="bento-card" style="box-shadow: var(--shadow-lg);">
+    <!-- Header -->
+    <div style="text-align: center; margin-bottom: 1.5rem;">
+      <div class="brand-logo-badge" style="margin: 0 auto 0.75rem; width: 50px; height: 50px; font-size: 1.4rem;">A</div>
+      <h2 style="font-size: 1.5rem; margin-bottom: 0.25rem;">Portal Login</h2>
+      <p style="font-size: 0.85rem; color: var(--text-muted);">Sign in to access your dashboard</p>
+    </div>
+
+    <!-- Quick Demo Role Switcher -->
+    <div style="margin-bottom: 1.5rem; background: var(--bg-subtle); padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+      <span style="display: block; font-size: 0.72rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.5rem; text-transform: uppercase;">
+        Quick 1-Click Demo Fill:
+      </span>
+      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.4rem;">
+        <button type="button" class="btn btn-secondary btn-sm demo-fill-btn" data-user="admin" data-pass="admin123" style="font-size: 0.75rem;">
+          🛡️ Admin
+        </button>
+        <button type="button" class="btn btn-secondary btn-sm demo-fill-btn" data-user="staff" data-pass="staff123" style="font-size: 0.75rem;">
+          💼 Office Staff
+        </button>
+        <button type="button" class="btn btn-secondary btn-sm demo-fill-btn" data-user="teacher" data-pass="teacher123" style="font-size: 0.75rem;">
+          👩‍🏫 Teacher
+        </button>
+        <button type="button" class="btn btn-secondary btn-sm demo-fill-btn" data-user="student" data-pass="student123" style="font-size: 0.75rem;">
+          🎓 Student/Parent
+        </button>
+      </div>
+    </div>
+
+    <!-- Form -->
+    <form method="post" action="{% url 'accounts:login' %}">
+      {% csrf_token %}
+
+      <div class="form-group">
+        <label for="login-username" class="form-label">Username / ID</label>
+        {{ form.username }}
+      </div>
+
+      <div class="form-group">
+        <label for="login-password" class="form-label">Password</label>
+        {{ form.password }}
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem; padding: 0.85rem;">
+        Sign In to Portal &rarr;
+      </button>
+    </form>
+
+    <div style="text-align: center; margin-top: 1.5rem; font-size: 0.82rem; color: var(--text-muted);">
+      Arifa Women's Academy &bull; Kodampuzha, Calicut
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const userInp = document.getElementById('login-username');
+  const passInp = document.getElementById('login-password');
+
+  document.querySelectorAll('.demo-fill-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      userInp.value = btn.dataset.user;
+      passInp.value = btn.dataset.pass;
+    });
+  });
+
+  // Check URL query param e.g. ?role=teacher
+  const params = new URLSearchParams(window.location.search);
+  const targetRole = params.get('role');
+  if (targetRole) {
+    const matchingBtn = document.querySelector(`.demo-fill-btn[data-user="${targetRole}"]`);
+    if (matchingBtn) {
+      matchingBtn.click();
+    }
+  }
+});
+</script>
+{% endblock %}

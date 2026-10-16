@@ -1,0 +1,250 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ student.full_name }} Profile | Arifa Women's Academy{% endblock %}
+
+{% block content %}
+<!-- Top Header & Actions -->
+<div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
+  <div>
+    <span class="badge bg-pastel-rose" style="margin-bottom: 0.35rem;">STUDENT DOSSIER</span>
+    <h1 style="font-size: 1.85rem;">{{ student.full_name }}</h1>
+    <p style="color: var(--text-muted); font-size: 0.88rem;">{{ student.current_class.display_name }} &bull; Admission No: <b>{{ student.admission_number }}</b></p>
+  </div>
+
+  <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+    <a href="{% url 'dashboard:student_dashboard_detail' student.id %}" class="btn btn-primary btn-sm">
+      Student Portal View
+    </a>
+    <a href="{% url 'students:student_edit' student.id %}" class="btn btn-secondary btn-sm">
+      Edit Profile
+    </a>
+    <a href="{% url 'fees:fee_collect' %}?student_id={{ student.id }}" class="btn btn-pastel-sage btn-sm">
+      Collect Fee
+    </a>
+    <a href="{% url 'students:student_delete' student.id %}" class="btn btn-secondary btn-sm" style="color: var(--coral-primary);">
+      Delete
+    </a>
+  </div>
+</div>
+
+<!-- Bento Row 1: Student Information & Attendance KPI Cards -->
+<div class="bento-grid">
+  <!-- Student Profile Card -->
+  <div class="bento-card col-4 col-md-12">
+    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.25rem;">
+      <div style="width: 68px; height: 68px; border-radius: var(--radius-lg); background: linear-gradient(135deg, var(--rose-primary), var(--lavender-primary)); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.8rem; font-weight: 800; box-shadow: var(--shadow-md);">
+        {% if student.photo %}
+          <img src="{{ student.photo.url }}" alt="{{ student.full_name }}" style="width: 100%; height: 100%; border-radius: var(--radius-lg); object-fit: cover;">
+        {% else %}
+          {{ student.full_name|slice:":1" }}
+        {% endif %}
+      </div>
+      <div>
+        <h3 style="font-size: 1.2rem; margin-bottom: 0.2rem;">{{ student.full_name }}</h3>
+        <span class="badge bg-pastel-lavender">{{ student.current_class.display_name }}</span>
+      </div>
+    </div>
+
+    <div style="font-size: 0.85rem; display: flex; flex-direction: column; gap: 0.6rem;">
+      <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem;">
+        <span style="color: var(--text-muted);">Roll Number:</span>
+        <b>{{ student.roll_number|default:"-" }}</b>
+      </div>
+      <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem;">
+        <span style="color: var(--text-muted);">Date of Birth:</span>
+        <b>{{ student.date_of_birth|date:"d M Y"|default:"-" }}</b>
+      </div>
+      <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem;">
+        <span style="color: var(--text-muted);">Blood Group:</span>
+        <b>{{ student.blood_group|default:"-" }}</b>
+      </div>
+      <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem;">
+        <span style="color: var(--text-muted);">Father / Guardian:</span>
+        <b>{{ student.father_or_guardian_name }}</b>
+      </div>
+      <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem;">
+        <span style="color: var(--text-muted);">Phone Number:</span>
+        <b>{{ student.guardian_phone }}</b>
+      </div>
+      <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem;">
+        <span style="color: var(--text-muted);">Bus / Vehicle:</span>
+        <b>{% if student.vehicle_opted %}<font color="var(--sage-primary)">Yes ({{ student.vehicle_route }})</font>{% else %}No{% endif %}</b>
+      </div>
+      <div style="padding-top: 0.4rem;">
+        <span style="color: var(--text-muted); display: block; font-size: 0.78rem;">Address:</span>
+        <span style="color: var(--text-main);">{{ student.address|default:"Kodampuzha, Calicut" }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Attendance Highlights & Calendar Heatmap Box -->
+  <div class="bento-card col-8 col-md-12">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.5rem;">
+      <div>
+        <h3 style="font-size: 1.25rem;">Attendance Calendar Heatmap</h3>
+        <p style="font-size: 0.82rem; color: var(--text-muted);">Visual 12-week activity log: Green for Present, Red for Absent</p>
+      </div>
+
+      <!-- Live Today Pill -->
+      <div>
+        {% if today_status == 'PRESENT' %}
+          <span class="badge badge-present badge-pill">TODAY: PRESENT</span>
+        {% elif today_status == 'ABSENT' %}
+          <span class="badge badge-absent badge-pill">TODAY: ABSENT</span>
+        {% elif today_status == 'LATE' %}
+          <span class="badge badge-late badge-pill">TODAY: LATE</span>
+        {% else %}
+          <span class="badge" style="background: var(--bg-subtle); color: var(--text-subtle);">TODAY: NOT MARKED</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Attendance Stats Mini Cards -->
+    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
+      <div style="background: var(--bg-subtle); padding: 0.85rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+        <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Monthly Attendance ({{ today|date:"M Y" }})</span>
+        <div style="display: flex; align-items: baseline; gap: 0.5rem; margin-top: 0.25rem;">
+          <span style="font-size: 1.5rem; font-weight: 800; color: var(--sage-primary);">{{ monthly_stats.percentage }}%</span>
+          <span style="font-size: 0.8rem; color: var(--text-muted);">({{ monthly_stats.present_days }}/{{ monthly_stats.total_days }} days)</span>
+        </div>
+      </div>
+
+      <div style="background: var(--bg-subtle); padding: 0.85rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+        <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Annual Academic Year Attendance</span>
+        <div style="display: flex; align-items: baseline; gap: 0.5rem; margin-top: 0.25rem;">
+          <span style="font-size: 1.5rem; font-weight: 800; color: var(--lavender-primary);">{{ yearly_stats.percentage }}%</span>
+          <span style="font-size: 0.8rem; color: var(--text-muted);">({{ yearly_stats.present_days }}/{{ yearly_stats.total_days }} days)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CALENDAR HEATMAP MATRIX (Green for Present, Red for Absent) -->
+    <div class="calendar-heatmap-container">
+      <div style="display: flex; gap: 6px; font-size: 0.72rem; color: var(--text-subtle); margin-bottom: 4px; padding-left: 24px;">
+        <span>Mon</span>
+        <span style="margin-left: 14px;">Wed</span>
+        <span style="margin-left: 14px;">Fri</span>
+      </div>
+
+      <div style="display: flex; gap: 5px;">
+        <!-- Day labels column -->
+        <div style="display: grid; grid-template-rows: repeat(7, 18px); gap: 5px; font-size: 0.65rem; color: var(--text-subtle); text-align: right; width: 20px;">
+          <span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span>
+        </div>
+
+        <!-- Heatmap Grid -->
+        <div class="heatmap-grid" style="margin-top: 0;">
+          {% for week in weeks %}
+            {% for day in week %}
+              <div
+                class="heatmap-cell {% if day.status == 'PRESENT' %}present{% elif day.status == 'ABSENT' %}absent{% elif day.status == 'LATE' %}late{% elif day.status == 'HOLIDAY' %}holiday{% endif %}"
+                title="{{ day.date|date:'d M Y' }}: {% if day.status == 'PRESENT' %}Present (Green){% elif day.status == 'ABSENT' %}Absent (Red){% elif day.status == 'LATE' %}Late{% elif day.status == 'HOLIDAY' %}Holiday/Sunday{% else %}No Record{% endif %}"
+                {% if day.is_today %}style="outline: 2px solid var(--rose-primary);"{% endif %}
+              ></div>
+            {% endfor %}
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Legend -->
+      <div class="heatmap-legend">
+        <div class="legend-item"><span class="legend-box" style="background: #10B981;"></span> Present (Green)</div>
+        <div class="legend-item"><span class="legend-box" style="background: #F43F5E;"></span> Absent (Red)</div>
+        <div class="legend-item"><span class="legend-box" style="background: #F59E0B;"></span> Late Arrival</div>
+        <div class="legend-item"><span class="legend-box" style="background: #94A3B8; opacity: 0.4;"></span> Sunday / Off</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Bento Row 2: Fee Ledger & Examination Results -->
+<div class="bento-grid">
+  <!-- Fee Ledger -->
+  <div class="bento-card col-6 col-md-12">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+      <h3 style="font-size: 1.15rem;">Fee Ledger &amp; Payments</h3>
+      <a href="{% url 'fees:fee_collect' %}?student_id={{ student.id }}" class="btn btn-primary btn-sm">+ Collect Fee</a>
+    </div>
+
+    <!-- Active Due Installments Warning -->
+    {% if due_installments %}
+      <div style="background: var(--coral-pastel); border: 1px solid rgba(244, 63, 94, 0.3); border-radius: var(--radius-md); padding: 0.75rem; margin-bottom: 1rem;">
+        <span style="font-size: 0.8rem; font-weight: 700; color: var(--coral-text); display: block; margin-bottom: 0.25rem;">Pending Due Fees:</span>
+        {% for di in due_installments %}
+          <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--coral-text);">
+            <span>&bull; {{ di.title }} (Due: {{ di.due_date|date:"d M" }})</span>
+            <b>₹{{ di.amount }}</b>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <div class="table-responsive">
+      <table class="custom-table">
+        <thead>
+          <tr>
+            <th>Receipt</th>
+            <th>Particulars</th>
+            <th>Paid Date</th>
+            <th>Amount</th>
+            <th>PDF</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for pay in payments %}
+            <tr>
+              <td><b>{{ pay.receipt_number }}</b></td>
+              <td>{{ pay.installment.title }}</td>
+              <td>{{ pay.payment_date|date:"d M Y" }}</td>
+              <td><span style="color: var(--sage-primary); font-weight: 700;">₹{{ pay.amount_paid }}</span></td>
+              <td>
+                <a href="{% url 'fees:receipt_pdf' pay.receipt_number %}" class="btn btn-secondary btn-sm" style="padding: 0.2rem 0.5rem; font-size: 0.72rem;">
+                  PDF
+                </a>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="5" style="text-align: center; color: var(--text-muted);">No payment records found.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Examination Results & Progress Reports -->
+  <div class="bento-card col-6 col-md-12">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+      <h3 style="font-size: 1.15rem;">Examinations &amp; Progress Reports</h3>
+      <span class="badge bg-pastel-lavender">Official Cards</span>
+    </div>
+
+    {% if exam_results %}
+      <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+        {% for er in exam_results %}
+          <div style="background: var(--bg-subtle); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+            <div>
+              <b style="font-size: 0.95rem; display: block;">{{ er.exam.name }}</b>
+              <span style="font-size: 0.8rem; color: var(--text-muted);">
+                Percentage: <b style="color: var(--sage-primary);">{{ er.pct }}%</b> ({{ er.tot_obtained|floatformat:1 }}/{{ er.tot_max|floatformat:0 }})
+              </span>
+            </div>
+
+            <div style="display: flex; gap: 0.4rem;">
+              <a href="{% url 'examinations:progress_report' student.id er.exam.id %}" class="btn btn-secondary btn-sm" style="font-size: 0.75rem;">
+                View Card
+              </a>
+              <a href="{% url 'examinations:download_progress_report_pdf' student.id er.exam.id %}" class="btn btn-primary btn-sm" style="font-size: 0.75rem;">
+                Download PDF
+              </a>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p style="color: var(--text-muted); font-size: 0.85rem;">No examination results published yet.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
