@@ -1,0 +1,14 @@
+# Core Django Framework
+Django>=5.2.0,<6.0.0
+asgiref>=3.8.1
+sqlparse>=0.5.0
+tzdata>=2025.1
+
+# Image Processing (Student & Staff Photo Uploads)
+Pillow>=10.2.0
+
+# Excel Processing (Student Bulk Upload & Template Generation)
+openpyxl>=3.1.2
+
+# PDF Document Generation (Fee Receipts & Examination Progress Reports)
+reportlab>=4.2.0
