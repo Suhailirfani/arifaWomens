@@ -77,7 +77,7 @@ def generate_fee_defaulters_pdf(installment, paid_records, unpaid_students, scho
     )
 
     # Header
-    story.append(Paragraph("ARIFA WOMEN'S ACADEMY", title_style))
+    story.append(Paragraph("DARUL MA'ARIF WOMEN'S ACADEMY", title_style))
     story.append(Paragraph("Kodampuzha, Kozhikode, Kerala - 673014", subtitle_style))
     story.append(Spacer(1, 4))
     
@@ -202,7 +202,7 @@ def generate_fee_defaulters_pdf(installment, paid_records, unpaid_students, scho
         story.append(paid_table)
 
     story.append(Spacer(1, 25))
-    story.append(Paragraph("This is a computer-generated fee audit report issued by Arifa Women's Academy administration.", meta_style))
+    story.append(Paragraph("This is a computer-generated fee audit report issued by Darul Ma'arif Women's Academy administration.", meta_style))
 
     doc.build(story)
     buffer.seek(0)
@@ -247,7 +247,7 @@ def generate_fee_receipt_pdf(payment):
     cell_bold = ParagraphStyle('CBold', fontName='Helvetica-Bold', fontSize=10, textColor=colors.HexColor('#1E293B'))
     cell_norm = ParagraphStyle('CNorm', fontName='Helvetica', fontSize=10, textColor=colors.HexColor('#334155'))
 
-    story.append(Paragraph("ARIFA WOMEN'S ACADEMY", title_style))
+    story.append(Paragraph("DARUL MA'ARIF WOMEN'S ACADEMY", title_style))
     story.append(Paragraph("Kodampuzha, Kozhikode, Kerala &bull; Ph: +91 98470 12345", sub_style))
     story.append(Spacer(1, 6))
     story.append(Paragraph("<b>FEE PAYMENT RECEIPT</b>", ParagraphStyle('R', alignment=1, fontSize=12, fontName='Helvetica-Bold', textColor=colors.HexColor('#059669'))))
@@ -389,7 +389,7 @@ def generate_vehicle_defaulters_pdf(month, year, paid_records, unpaid_dues, bus_
     )
 
     # Header
-    story.append(Paragraph("ARIFA WOMEN'S ACADEMY", title_style))
+    story.append(Paragraph("DARUL MA'ARIF WOMEN'S ACADEMY", title_style))
     story.append(Paragraph("Kodampuzha, Kozhikode, Kerala - 673014", subtitle_style))
     story.append(Spacer(1, 4))
 
@@ -518,7 +518,7 @@ def generate_vehicle_defaulters_pdf(month, year, paid_records, unpaid_dues, bus_
         story.append(ptable)
 
     story.append(Spacer(1, 25))
-    story.append(Paragraph("This is an official computer-generated transportation fee audit report issued by Arifa Women's Academy.", meta_style))
+    story.append(Paragraph("This is an official computer-generated transportation fee audit report issued by Darul Ma'arif Women's Academy.", meta_style))
 
     doc.build(story)
     buffer.seek(0)

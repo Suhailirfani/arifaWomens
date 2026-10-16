@@ -110,7 +110,8 @@ class SystemFlowTest(TestCase):
     def test_home_page(self):
         resp = self.client.get(reverse('home'))
         self.assertEqual(resp.status_code, 200)
-        self.assertContains(resp, "Arifa Women's Academy")
+        self.assertContains(resp, "Darul Ma'arif")
+        self.assertContains(resp, "Women's Academy")
         self.assertContains(resp, "Humanities")
 
     def test_admin_dashboard(self):

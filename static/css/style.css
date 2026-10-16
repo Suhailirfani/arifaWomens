@@ -218,6 +218,14 @@ h1, h2, h3, h4, h5, h6 {
   -webkit-text-fill-color: transparent;
 }
 
+.brand-subname {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--rose-primary);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .brand-tagline {
   font-size: 0.72rem;
   font-weight: 600;

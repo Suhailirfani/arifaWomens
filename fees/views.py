@@ -224,7 +224,7 @@ def download_defaulters_pdf(request):
     pdf_data = generate_fee_defaulters_pdf(installment, paid_records, unpaid_students, selected_class)
     response = HttpResponse(pdf_data, content_type='application/pdf')
     inst_title = installment.title.replace(' ', '_') if installment else 'Fee_Defaulters'
-    response['Content-Disposition'] = f'attachment; filename="Arifa_Fee_Defaulters_{inst_title}.pdf"'
+    response['Content-Disposition'] = f'attachment; filename="Darul_Maarif_Fee_Defaulters_{inst_title}.pdf"'
     return response
 
 

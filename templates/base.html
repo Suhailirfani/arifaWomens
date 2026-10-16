@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}Arifa Women's Academy{% endblock %} | Kodampuzha</title>
+  <title>{% block title %}Darul Ma'arif Women's Academy{% endblock %} | Kodampuzha</title>
   
   <!-- Preconnect to Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -80,11 +80,11 @@
     <div class="container">
       <nav class="navbar">
         <!-- Brand Logo & Name -->
-        <a href="{% url 'home' %}" class="brand-wrapper">
-          <div class="brand-logo-badge">A</div>
-          <div class="brand-text-col">
-            <span class="brand-name">ARIFA WOMEN'S ACADEMY</span>
-            <span class="brand-tagline">Kodampuzha, Kozhikode</span>
+        <a href="{% url 'home' %}" class="brand-wrapper" title="Darul Ma'arif Women's Academy">
+          <div class="brand-logo-badge" style="font-size: 1rem; font-weight: 800; letter-spacing: -0.02em;">DM</div>
+          <div class="brand-text-col" style="line-height: 1.15;">
+            <span class="brand-name" style="font-size: 1.12rem; font-weight: 800; letter-spacing: -0.01em;">DARUL MA'ARIF</span>
+            <span class="brand-subname" style="font-size: 0.72rem; font-weight: 700; color: var(--rose-primary); letter-spacing: 0.08em; text-transform: uppercase;">WOMEN'S ACADEMY</span>
           </div>
         </a>
 
@@ -129,8 +129,11 @@
   <aside id="mobile-drawer" class="mobile-menu-drawer">
     <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color);">
       <div style="display: flex; align-items: center; gap: 0.65rem;">
-        <div class="brand-logo-badge" style="width: 32px; height: 32px; font-size: 0.95rem;">A</div>
-        <span class="brand-name" style="font-size: 0.95rem;">ARIFA ACADEMY</span>
+        <div class="brand-logo-badge" style="width: 34px; height: 34px; font-size: 0.82rem; font-weight: 800;">DM</div>
+        <div style="display: flex; flex-direction: column; line-height: 1.15;">
+          <span class="brand-name" style="font-size: 0.95rem; font-weight: 800;">DARUL MA'ARIF</span>
+          <span style="font-size: 0.66rem; font-weight: 700; color: var(--rose-primary); letter-spacing: 0.06em; text-transform: uppercase;">WOMEN'S ACADEMY</span>
+        </div>
       </div>
       <button id="mobile-close-btn" class="btn-icon" style="width: 32px; height: 32px;" title="Close Menu">&times;</button>
     </div>
@@ -227,11 +230,11 @@
     <div class="container">
       <div class="footer-inner">
         <div>
-          <p style="font-weight: 700; color: var(--text-main); margin-bottom: 0.25rem;">Arifa Women's Academy</p>
+          <p style="font-weight: 700; color: var(--text-main); margin-bottom: 0.25rem;">Darul Ma'arif Women's Academy</p>
           <p style="font-size: 0.8rem;">Kodampuzha, Kozhikode, Kerala &bull; High School & Higher Secondary (Humanities & Commerce)</p>
         </div>
         <div style="font-size: 0.8rem; color: var(--text-subtle);">
-          &copy; {% now "Y" %} Arifa Women's Academy. All Rights Reserved.
+          &copy; {% now "Y" %} Darul Ma'arif Women's Academy. All Rights Reserved.
         </div>
       </div>
     </div>

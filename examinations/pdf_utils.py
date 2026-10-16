@@ -55,7 +55,7 @@ def generate_progress_report_pdf(student, exam, mark_records):
     table_center = ParagraphStyle('TCenter', fontName='Helvetica', fontSize=9, textColor=colors.HexColor('#1E293B'), alignment=1)
 
     # Header
-    story.append(Paragraph("ARIFA WOMEN'S ACADEMY", title_style))
+    story.append(Paragraph("DARUL MA'ARIF WOMEN'S ACADEMY", title_style))
     story.append(Paragraph("Kodampuzha, Kozhikode, Kerala - 673014 &bull; Affiliated to Board of Secondary Education", sub_title))
     story.append(Spacer(1, 4))
     story.append(Paragraph(f"<b>STUDENT PROGRESS REPORT &bull; {exam.name.upper()}</b>", report_tag))
