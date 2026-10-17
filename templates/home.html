@@ -37,47 +37,69 @@
 </section>
 
 <!-- Bento Grid 1: Key Academic Streams & Fast Stats -->
-<div class="bento-grid">
+<div class="bento-grid bento-grid-academic">
   <!-- Card 1: Higher Secondary Stream -->
   <div class="bento-card col-4 col-md-4" style="background: linear-gradient(135deg, var(--bg-surface), var(--rose-pastel)); border-color: rgba(226, 91, 120, 0.3);">
-    <div class="stat-icon-wrapper bg-pastel-rose" style="margin-bottom: 1rem;">
+    <div class="stat-icon-wrapper bg-pastel-rose">
       📚
     </div>
-    <h3 style="font-size: 1.25rem; margin-bottom: 0.5rem;">Higher Secondary (HSS)</h3>
-    <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1rem;">
+    <h3 class="academic-card-title">Higher Secondary</h3>
+    <span class="academic-card-badge bg-pastel-rose">+1 &amp; +2</span>
+    <p class="desktop-only-text" style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1rem;">
       Plus One & Plus Two programs with specialized streams in <b>Humanities</b> and <b>Commerce</b> tailored for university preparedness.
     </p>
-    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: auto;">
+    <div class="desktop-only-flex" style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: auto;">
       <span class="badge bg-pastel-rose">+1 Humanities</span>
       <span class="badge bg-pastel-lavender">+1 Commerce</span>
       <span class="badge bg-pastel-rose">+2 Humanities</span>
       <span class="badge bg-pastel-lavender">+2 Commerce</span>
     </div>
+    <div class="mobile-only-sub">
+      Hum &bull; Comm
+    </div>
   </div>
 
   <!-- Card 2: High School Stream -->
   <div class="bento-card col-4 col-md-4" style="background: linear-gradient(135deg, var(--bg-surface), var(--sage-pastel)); border-color: rgba(16, 185, 129, 0.3);">
-    <div class="stat-icon-wrapper bg-pastel-sage" style="margin-bottom: 1rem;">
+    <div class="stat-icon-wrapper bg-pastel-sage">
       🌱
     </div>
-    <h3 style="font-size: 1.25rem; margin-bottom: 0.5rem;">High School Section</h3>
-    <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1rem;">
+    <h3 class="academic-card-title">High School</h3>
+    <span class="academic-card-badge bg-pastel-sage">Class 8–10</span>
+    <p class="desktop-only-text" style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1rem;">
       Foundational schooling for <b>Class 8, Class 9, and Class 10</b> focusing on holistic education, languages, sciences, and ethics.
     </p>
-    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: auto;">
+    <div class="desktop-only-flex" style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: auto;">
       <span class="badge bg-pastel-sage">Class 8</span>
       <span class="badge bg-pastel-sage">Class 9</span>
       <span class="badge bg-pastel-sage">Class 10 (SSLC)</span>
+    </div>
+    <div class="mobile-only-sub">
+      SSLC Stream
     </div>
   </div>
 
   <!-- Card 3: Academy Key Metrics -->
   <div class="bento-card col-4 col-md-4" style="background: linear-gradient(135deg, var(--bg-surface), var(--lavender-pastel)); border-color: rgba(139, 92, 246, 0.3);">
-    <div class="stat-icon-wrapper bg-pastel-lavender" style="margin-bottom: 1rem;">
+    <div class="stat-icon-wrapper bg-pastel-lavender">
       🏛️
     </div>
-    <h3 style="font-size: 1.25rem; margin-bottom: 0.5rem;">Academy at a Glance</h3>
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 0.75rem;">
+    <h3 class="academic-card-title">At a Glance</h3>
+    
+    <!-- Mobile Compact Stats Display -->
+    <div class="mobile-only-block" style="width: 100%; margin-top: 0.35rem;">
+      <a href="{% url 'students:student_list' %}" class="mobile-stat-pill" title="View Students">
+        <span class="mobile-stat-count" style="color: var(--rose-primary);">{{ total_students }}</span>
+        <span class="mobile-stat-label">Students &rarr;</span>
+      </a>
+      <a href="{% url 'staff:staff_list' %}" class="mobile-stat-pill" title="View Staff">
+        <span class="mobile-stat-count" style="color: var(--lavender-primary);">{{ total_staff }}</span>
+        <span class="mobile-stat-label">Staff &rarr;</span>
+      </a>
+    </div>
+
+    <!-- Desktop Stats Display -->
+    <div class="desktop-only-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 0.75rem;">
       <a href="{% url 'students:student_list' %}" class="stat-glance-link" title="Open Students List" style="text-decoration: none; color: inherit; background: var(--bg-surface); padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); display: block; cursor: pointer; transition: transform var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);">
         <span style="font-size: 1.5rem; font-weight: 800; color: var(--rose-primary); display: flex; align-items: center; justify-content: space-between;">
           {{ total_students }}
@@ -93,91 +115,102 @@
         <span style="display: block; font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">Faculty & Staff</span>
       </a>
     </div>
-    <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.85rem;">
+    <p class="desktop-only-text" style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.85rem;">
       📍 Campus Location: Kodampuzha, Kozhikode District, Kerala.
     </p>
   </div>
 </div>
 
 <!-- Section: Multi-Role Portals & 1-Click Access -->
-<div id="portals-section" style="margin-top: 3.5rem; margin-bottom: 1.5rem;">
-  <div style="text-align: center; max-width: 650px; margin: 0 auto 2.5rem;">
+<div id="portals-section" class="portals-section-wrapper" style="margin-top: 3.5rem; margin-bottom: 1.5rem;">
+  <div class="portals-section-header" style="text-align: center; max-width: 650px; margin: 0 auto 2.5rem;">
     <span class="badge bg-pastel-rose" style="margin-bottom: 0.75rem;">ROLE-BASED ECOSYSTEM</span>
-    <h2 style="font-size: 2rem; margin-bottom: 0.5rem;">Multi-User Portals & Dashboards</h2>
-    <p style="color: var(--text-muted); font-size: 0.95rem;">
+    <h2 class="portals-section-title" style="font-size: 2rem; margin-bottom: 0.5rem;">Multi-User Portals &amp; Dashboards</h2>
+    <p class="desktop-only-text" style="color: var(--text-muted); font-size: 0.95rem;">
       Tailored bento workspaces designed specifically for Administrators, Office Staff, Teachers, and Students / Parents.
     </p>
   </div>
 
-  <div class="bento-grid">
-    <!-- Portal 1: Administrator -->
+  <div class="bento-grid bento-grid-portals">
+    <!-- Portal 1: Administrator (Row 1, Card 1) -->
     <div class="bento-card col-3 col-md-6 portal-card">
-      <div>
+      <div class="portal-card-header">
         <div class="portal-badge bg-pastel-rose">🛡️</div>
-        <span class="badge bg-pastel-rose" style="margin-bottom: 0.5rem;">ADMIN PORTAL</span>
-        <h3 style="font-size: 1.15rem; margin-bottom: 0.4rem;">Administrator</h3>
-        <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1rem;">
+        <span class="badge bg-pastel-rose desktop-only-badge" style="margin-bottom: 0.5rem;">ADMIN PORTAL</span>
+        <h3 class="portal-card-title">Administrator</h3>
+        <span class="badge bg-pastel-rose mobile-only-role-tag">Admin</span>
+        <p class="desktop-only-text" style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1rem;">
           Holistic institution oversight, fee defaulters PDF reports, class attendance stats, staff register, and academic calendar.
         </p>
       </div>
-      <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
-        <span style="font-size: 0.75rem; color: var(--text-subtle); display: block; margin-bottom: 0.5rem;">Demo: <code>admin</code> / <code>admin123</code></span>
-        <a href="{% url 'accounts:login' %}?role=admin" class="btn btn-pastel-rose btn-sm" style="width: 100%;">
-          Login as Admin &rarr;
+      <div class="portal-card-footer">
+        <span class="desktop-only-text" style="font-size: 0.75rem; color: var(--text-subtle); display: block; margin-bottom: 0.5rem;">Demo: <code>admin</code> / <code>admin123</code></span>
+        <a href="{% url 'accounts:login' %}?role=admin" class="btn btn-pastel-rose btn-sm portal-btn-mobile">
+          <span class="desktop-label">Login as Admin &rarr;</span>
+          <span class="mobile-label">Login &rarr;</span>
         </a>
       </div>
     </div>
 
-    <!-- Portal 2: Office Staff -->
+    <!-- Portal 2: Office Staff (Row 1, Card 2) -->
     <div class="bento-card col-3 col-md-6 portal-card">
-      <div>
+      <div class="portal-card-header">
         <div class="portal-badge bg-pastel-lavender">💼</div>
-        <span class="badge bg-pastel-lavender" style="margin-bottom: 0.5rem;">OFFICE STAFF</span>
-        <h3 style="font-size: 1.15rem; margin-bottom: 0.4rem;">Office & Admissions</h3>
-        <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1rem;">
+        <span class="badge bg-pastel-lavender desktop-only-badge" style="margin-bottom: 0.5rem;">OFFICE STAFF</span>
+        <h3 class="portal-card-title">Office &amp; Admin</h3>
+        <span class="badge bg-pastel-lavender mobile-only-role-tag">Office</span>
+        <p class="desktop-only-text" style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1rem;">
           Student register single entry & bulk Excel upload, fee collections, receipt generation, and monthly bus fee tracking.
         </p>
       </div>
-      <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
-        <span style="font-size: 0.75rem; color: var(--text-subtle); display: block; margin-bottom: 0.5rem;">Demo: <code>staff</code> / <code>staff123</code></span>
-        <a href="{% url 'accounts:login' %}?role=staff" class="btn btn-pastel-lavender btn-sm" style="width: 100%;">
-          Login as Staff &rarr;
+      <div class="portal-card-footer">
+        <span class="desktop-only-text" style="font-size: 0.75rem; color: var(--text-subtle); display: block; margin-bottom: 0.5rem;">Demo: <code>staff</code> / <code>staff123</code></span>
+        <a href="{% url 'accounts:login' %}?role=staff" class="btn btn-pastel-lavender btn-sm portal-btn-mobile">
+          <span class="desktop-label">Login as Staff &rarr;</span>
+          <span class="mobile-label">Login &rarr;</span>
         </a>
       </div>
     </div>
 
-    <!-- Portal 3: Teacher -->
+    <!-- Portal 3: Teacher (Row 1, Card 3) -->
     <div class="bento-card col-3 col-md-6 portal-card">
-      <div>
+      <div class="portal-card-header">
         <div class="portal-badge bg-pastel-sage">👩‍🏫</div>
-        <span class="badge bg-pastel-sage" style="margin-bottom: 0.5rem;">TEACHER PORTAL</span>
-        <h3 style="font-size: 1.15rem; margin-bottom: 0.4rem;">Faculty & Mentors</h3>
-        <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1rem;">
+        <span class="badge bg-pastel-sage desktop-only-badge" style="margin-bottom: 0.5rem;">TEACHER PORTAL</span>
+        <h3 class="portal-card-title">Faculty</h3>
+        <span class="badge bg-pastel-sage mobile-only-role-tag">Teacher</span>
+        <p class="desktop-only-text" style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1rem;">
           Daily class-wise attendance marking with 1-click toggles, exam marks entry, and dedicated class dashboard analysis.
         </p>
       </div>
-      <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
-        <span style="font-size: 0.75rem; color: var(--text-subtle); display: block; margin-bottom: 0.5rem;">Demo: <code>teacher</code> / <code>teacher123</code></span>
-        <a href="{% url 'accounts:login' %}?role=teacher" class="btn btn-pastel-sage btn-sm" style="width: 100%;">
-          Login as Teacher &rarr;
+      <div class="portal-card-footer">
+        <span class="desktop-only-text" style="font-size: 0.75rem; color: var(--text-subtle); display: block; margin-bottom: 0.5rem;">Demo: <code>teacher</code> / <code>teacher123</code></span>
+        <a href="{% url 'accounts:login' %}?role=teacher" class="btn btn-pastel-sage btn-sm portal-btn-mobile">
+          <span class="desktop-label">Login as Teacher &rarr;</span>
+          <span class="mobile-label">Login &rarr;</span>
         </a>
       </div>
     </div>
 
-    <!-- Portal 4: Parent / Student -->
-    <div class="bento-card col-3 col-md-6 portal-card">
-      <div>
+    <!-- Portal 4: Parent / Student (Row 2, spanning 3 columns on mobile) -->
+    <div class="bento-card col-3 col-md-6 portal-card portal-card-student">
+      <div class="portal-student-content">
         <div class="portal-badge bg-pastel-sky">🎓</div>
-        <span class="badge bg-pastel-sky" style="margin-bottom: 0.5rem;">STUDENT & PARENT</span>
-        <h3 style="font-size: 1.15rem; margin-bottom: 0.4rem;">Student / Parent</h3>
-        <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1rem;">
-          Real-time daily presence badge, calendar heatmap, monthly/annual attendance stats, exam marks, and progress report card PDF.
-        </p>
+        <span class="badge bg-pastel-sky desktop-only-badge" style="margin-bottom: 0.5rem;">STUDENT &amp; PARENT</span>
+        <div class="portal-student-text">
+          <h3 class="portal-card-title">Student &amp; Parent</h3>
+          <span class="mobile-only-sub" style="font-size: 0.64rem; color: var(--text-muted); font-weight: 600;">Attendance &bull; Exams &bull; Reports</span>
+          <p class="desktop-only-text" style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1rem;">
+            Real-time daily presence badge, calendar heatmap, monthly/annual attendance stats, exam marks, and progress report card PDF.
+          </p>
+        </div>
       </div>
-      <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
-        <span style="font-size: 0.75rem; color: var(--text-subtle); display: block; margin-bottom: 0.5rem;">Demo: <code>student</code> / <code>student123</code></span>
-        <a href="{% url 'accounts:login' %}?role=student" class="btn btn-secondary btn-sm" style="width: 100%;">
-          Login as Student &rarr;
+
+      <div class="portal-card-footer">
+        <span class="desktop-only-text" style="font-size: 0.75rem; color: var(--text-subtle); display: block; margin-bottom: 0.5rem;">Demo: <code>student</code> / <code>student123</code></span>
+        <a href="{% url 'accounts:login' %}?role=student" class="btn btn-secondary btn-sm portal-btn-mobile">
+          <span class="desktop-label">Login as Student &rarr;</span>
+          <span class="mobile-label">Login as Student &rarr;</span>
         </a>
       </div>
     </div>

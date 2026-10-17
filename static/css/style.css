@@ -978,6 +978,232 @@ textarea.form-control {
   .hero-section {
     padding: 0.5rem 0 2rem;
   }
+
+  .desktop-only-text,
+  .desktop-only-flex,
+  .desktop-only-grid,
+  .desktop-only-block,
+  .desktop-only-badge,
+  .desktop-label {
+    display: none !important;
+  }
+  .mobile-only-sub {
+    display: block !important;
+  }
+  .mobile-only-block {
+    display: block !important;
+  }
+  .mobile-only-flex {
+    display: flex !important;
+  }
+  .mobile-only-role-tag {
+    display: inline-block !important;
+  }
+  .mobile-label {
+    display: inline !important;
+  }
+
+  /* Academic Streams 3-Card Mobile Grid */
+  .bento-grid-academic {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 0.45rem !important;
+    margin-bottom: 1.5rem !important;
+  }
+
+  .bento-grid-academic .bento-card {
+    grid-column: span 1 !important;
+    padding: 0.65rem 0.35rem !important;
+    border-radius: var(--radius-lg) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    justify-content: flex-start !important;
+    min-width: 0 !important;
+  }
+
+  .bento-grid-academic .stat-icon-wrapper {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 1.05rem !important;
+    margin-bottom: 0.35rem !important;
+  }
+
+  .academic-card-title {
+    font-size: 0.74rem !important;
+    font-weight: 800 !important;
+    margin-bottom: 0.2rem !important;
+    line-height: 1.2 !important;
+  }
+
+  .academic-card-badge {
+    font-size: 0.62rem !important;
+    font-weight: 700 !important;
+    padding: 0.12rem 0.35rem !important;
+    border-radius: var(--radius-full);
+  }
+
+  .mobile-only-sub {
+    font-size: 0.62rem !important;
+    color: var(--text-muted) !important;
+    font-weight: 600 !important;
+    margin-top: 0.25rem !important;
+  }
+
+  .mobile-stat-pill {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 0.2rem 0.35rem !important;
+    background: var(--bg-surface) !important;
+    border-radius: var(--radius-sm) !important;
+    border: 1px solid var(--border-color) !important;
+    text-decoration: none !important;
+    margin-bottom: 0.2rem !important;
+  }
+
+  .mobile-stat-count {
+    font-size: 0.75rem !important;
+    font-weight: 800 !important;
+  }
+
+  .mobile-stat-label {
+    font-size: 0.58rem !important;
+    color: var(--text-muted) !important;
+    font-weight: 600 !important;
+  }
+
+  /* Multi-Role Portals Mobile Grid */
+  .portals-section-wrapper {
+    margin-top: 2rem !important;
+    margin-bottom: 1.25rem !important;
+  }
+
+  .portals-section-header {
+    text-align: center;
+    max-width: 650px;
+    margin: 0 auto 1.25rem auto !important;
+  }
+
+  .portals-section-title {
+    font-size: 1.35rem !important;
+    margin-bottom: 0.35rem !important;
+  }
+
+  .bento-grid-portals {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 0.45rem !important;
+  }
+
+  .bento-grid-portals .portal-card {
+    grid-column: span 1 !important;
+    padding: 0.65rem 0.35rem !important;
+    border-radius: var(--radius-lg) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    justify-content: space-between !important;
+    min-width: 0 !important;
+  }
+
+  .portal-card-header {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    width: 100% !important;
+  }
+
+  .portal-badge {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 1.1rem !important;
+    margin: 0 auto 0.35rem auto !important;
+  }
+
+  .portal-card-title {
+    font-size: 0.76rem !important;
+    font-weight: 800 !important;
+    margin-bottom: 0.15rem !important;
+    line-height: 1.15 !important;
+  }
+
+  .mobile-only-role-tag {
+    font-size: 0.58rem !important;
+    font-weight: 700 !important;
+    padding: 0.1rem 0.35rem !important;
+    border-radius: var(--radius-full);
+    margin-bottom: 0.25rem !important;
+  }
+
+  .portal-card-footer {
+    width: 100% !important;
+    margin-top: 0.35rem !important;
+    padding-top: 0.35rem !important;
+    border-top: 1px solid var(--border-color) !important;
+  }
+
+  .portal-btn-mobile {
+    width: 100% !important;
+    padding: 0.32rem 0.25rem !important;
+    font-size: 0.68rem !important;
+    border-radius: var(--radius-full) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  /* 4th Card: Student & Parent (Row 2, spans all 3 columns) */
+  .bento-grid-portals .portal-card-student {
+    grid-column: 1 / -1 !important;
+    padding: 0.65rem 0.85rem !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    text-align: left !important;
+    border-radius: var(--radius-lg) !important;
+    margin-top: 0.15rem !important;
+  }
+
+  .portal-card-student .portal-student-content {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.65rem !important;
+  }
+
+  .portal-card-student .portal-student-text {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .portal-card-student .portal-card-title {
+    margin: 0 !important;
+    text-align: left !important;
+    font-size: 0.82rem !important;
+  }
+
+  .portal-card-student .portal-badge {
+    margin: 0 !important;
+    width: 34px !important;
+    height: 34px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .portal-card-student .portal-card-footer {
+    width: auto !important;
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+    border-top: none !important;
+    flex-shrink: 0 !important;
+  }
+
+  .portal-card-student .portal-btn-mobile {
+    width: auto !important;
+    padding: 0.4rem 0.85rem !important;
+    font-size: 0.74rem !important;
+    white-space: nowrap !important;
+  }
 }
 
 @media (max-width: 380px) {
@@ -994,6 +1220,22 @@ textarea.form-control {
   }
   .nav-actions {
     gap: 0.45rem;
+  }
+  .academic-card-title {
+    font-size: 0.68rem !important;
+  }
+  .portal-card-title {
+    font-size: 0.7rem !important;
+  }
+  .portal-btn-mobile {
+    font-size: 0.62rem !important;
+    padding: 0.28rem 0.2rem !important;
+  }
+  .bento-grid-academic .stat-icon-wrapper,
+  .portal-badge {
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 0.95rem !important;
   }
 }
 
