@@ -18,7 +18,8 @@ def generate_student_excel_template():
         "Admission Number*", "Roll No", "Full Name*", "Date of Birth (YYYY-MM-DD)",
         "Gender", "Grade Level*", "Course Name*", "Section*",
         "Father / Guardian Name*", "Guardian Phone*", "Guardian Email",
-        "Address", "Vehicle Opted (Yes/No)", "Vehicle Route", "Blood Group"
+        "Address", "Vehicle Opted (Yes/No)", "Vehicle Route", "Blood Group",
+        "Portal Username", "Portal Password"
     ]
 
     # Header styling
@@ -38,17 +39,20 @@ def generate_student_excel_template():
         [
             "ARF-2026-101", "01", "Mariyam Nabeel", "2009-05-14", "Female",
             "Plus One", "Humanities", "A", "Nabeel K.", "9847111222",
-            "mariyam@gmail.com", "Kodampuzha, Calicut", "Yes", "Kodampuzha Route A", "O+"
+            "mariyam@gmail.com", "Kodampuzha, Calicut", "Yes", "Kodampuzha Route A", "O+",
+            "ARF-2026-101", "student123"
         ],
         [
             "ARF-2026-102", "02", "Zehra Fathima", "2009-08-22", "Female",
             "Plus One", "Commerce", "A", "Musthafa P.", "9847222333",
-            "zehra@gmail.com", "Feroke, Calicut", "No", "", "B+"
+            "zehra@gmail.com", "Feroke, Calicut", "No", "", "B+",
+            "", ""
         ],
         [
             "ARF-2026-103", "01", "Rida Mariyam", "2010-03-10", "Female",
             "Class 10", "General", "A", "Ibrahimkutty", "9847333444",
-            "", "Ramanattukara", "Yes", "Feroke Route B", "A+"
+            "", "Ramanattukara", "Yes", "Feroke Route B", "A+",
+            "rida_2026", "ridaPass123"
         ]
     ]
 
@@ -70,12 +74,16 @@ def generate_student_excel_template():
 def parse_student_bulk_excel(file_obj, current_academic_year=None):
     """
     Parses an uploaded .xlsx file and imports students into the database.
+    Creates or updates portal User login accounts for each student.
     Returns: (created_count, updated_count, error_list)
     """
     if not current_academic_year:
         current_academic_year = AcademicYear.objects.filter(is_current=True).first()
         if not current_academic_year:
             current_academic_year = AcademicYear.objects.first()
+
+    if isinstance(file_obj, bytes):
+        file_obj = io.BytesIO(file_obj)
 
     wb = openpyxl.load_workbook(file_obj, data_only=True)
     ws = wb.active
@@ -84,9 +92,12 @@ def parse_student_bulk_excel(file_obj, current_academic_year=None):
     updated_count = 0
     errors = []
 
+    from accounts.models import User
+
     # Expected column mapping
     # 0: Adm No, 1: Roll, 2: Name, 3: DOB, 4: Gender, 5: Grade, 6: Course, 7: Section
     # 8: Guardian, 9: Phone, 10: Email, 11: Address, 12: Vehicle, 13: Route, 14: Blood
+    # 15: Username, 16: Password
     for row_idx, row in enumerate(ws.iter_rows(min_row=2, values_only=True), start=2):
         if not row or not any(row):
             continue
@@ -106,7 +117,6 @@ def parse_student_bulk_excel(file_obj, current_academic_year=None):
         # Resolve Grade Level
         grade = GradeLevel.objects.filter(name__iexact=grade_name).first()
         if not grade:
-            # Fallback or create
             grade = GradeLevel.objects.filter(name__icontains=grade_name).first()
             if not grade:
                 errors.append(f"Row {row_idx}: Invalid Grade Level '{grade_name}'.")
@@ -149,9 +159,33 @@ def parse_student_bulk_excel(file_obj, current_academic_year=None):
         route = str(row[13]).strip() if len(row) > 13 and row[13] is not None else ''
         blood_group = str(row[14]).strip() if len(row) > 14 and row[14] is not None else ''
 
+        # 15: Username, 16: Password
+        user_col = str(row[15]).strip() if len(row) > 15 and row[15] is not None else ''
+        pass_col = str(row[16]).strip() if len(row) > 16 and row[16] is not None else ''
+
+        username = user_col if user_col else adm_no
+        raw_password = pass_col if pass_col else 'student123'
+
+        user = User.objects.filter(username=username).first()
+        if not user:
+            name_parts = name.split(' ', 1)
+            user = User.objects.create_user(
+                username=username,
+                password=raw_password,
+                role=User.Role.PARENT,
+                first_name=name_parts[0],
+                last_name=name_parts[1] if len(name_parts) > 1 else '',
+                email=email,
+                phone_number=phone
+            )
+        elif pass_col:
+            user.set_password(raw_password)
+            user.save()
+
         student, created = Student.objects.update_or_create(
             admission_number=adm_no,
             defaults={
+                'user': user,
                 'roll_number': roll_no,
                 'full_name': name,
                 'current_class': school_class,

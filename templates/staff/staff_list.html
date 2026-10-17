@@ -10,10 +10,19 @@
     <p style="color: var(--text-muted); font-size: 0.88rem;">Total Faculty &amp; Personnel: <b id="staff-count-badge">{{ total_count }}</b></p>
   </div>
 
-  <a href="{% url 'staff:staff_create' %}" class="btn btn-primary btn-sm">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-    + Add New Staff
-  </a>
+  <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+    <a href="{% url 'staff:staff_create' %}" class="btn btn-primary btn-sm">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+      + Single Staff Entry
+    </a>
+    <a href="{% url 'staff:bulk_upload' %}" class="btn btn-secondary btn-sm">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+      Bulk Excel Upload
+    </a>
+    <a href="{% url 'staff:download_template' %}" class="btn btn-pastel-sage btn-sm" title="Download Excel Template">
+      Download Template (.xlsx)
+    </a>
+  </div>
 </div>
 
 <!-- Search & Filter Card -->

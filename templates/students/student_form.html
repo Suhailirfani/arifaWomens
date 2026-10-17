@@ -137,6 +137,40 @@
       </div>
     </div>
 
+    <!-- Portal Login Credentials Box -->
+    <div class="bento-card" style="margin-bottom: 1.5rem; border-color: rgba(56, 189, 248, 0.3); background: linear-gradient(135deg, var(--bg-surface), var(--sky-pastel));">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+        <h3 style="font-size: 1.15rem; color: var(--sky-text); display: flex; align-items: center; gap: 0.5rem; margin: 0;">
+          🎓 5. Student &amp; Parent Portal Login Access
+        </h3>
+        <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; font-weight: 700; cursor: pointer; margin: 0;">
+          {{ form.create_login_account }} Enable Login Account
+        </label>
+      </div>
+      <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1rem;">
+        Creates a dedicated portal login for the student / guardian to view daily attendance heatmaps, fee dues, exam marks, and progress reports.
+      </p>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem;">
+        <div class="form-group">
+          <label class="form-label">Portal Username</label>
+          {{ form.username }}
+          <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 0.25rem;">
+            Defaults to <b>Admission Number</b> if left empty.
+          </span>
+          {% if form.username.errors %}<span style="color: var(--coral-primary); font-size: 0.78rem;">{{ form.username.errors }}</span>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Portal Password</label>
+          {{ form.password }}
+          <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 0.25rem;">
+            Defaults to <code>student123</code> if left blank (or enter custom password).
+          </span>
+          {% if form.password.errors %}<span style="color: var(--coral-primary); font-size: 0.78rem;">{{ form.password.errors }}</span>{% endif %}
+        </div>
+      </div>
+    </div>
+
     <!-- Submit Button Group -->
     <div style="display: flex; gap: 1rem; justify-content: flex-end;">
       <a href="{% url 'students:student_list' %}" class="btn btn-secondary">Cancel</a>

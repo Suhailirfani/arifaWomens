@@ -61,13 +61,43 @@ def student_create(request):
     if request.method == 'POST':
         form = StudentForm(request.POST, request.FILES)
         if form.is_valid():
-            student = form.save()
+            student = form.save(commit=False)
+            create_login = form.cleaned_data.get('create_login_account')
+            custom_username = form.cleaned_data.get('username')
+            custom_password = form.cleaned_data.get('password')
+
+            if create_login:
+                from accounts.models import User
+                username = custom_username.strip() if custom_username else student.admission_number.strip()
+                raw_password = custom_password.strip() if custom_password else 'student123'
+                
+                user = User.objects.filter(username=username).first()
+                if not user:
+                    name_parts = student.full_name.strip().split(' ', 1)
+                    first_name = name_parts[0]
+                    last_name = name_parts[1] if len(name_parts) > 1 else ''
+                    user = User.objects.create_user(
+                        username=username,
+                        password=raw_password,
+                        role=User.Role.PARENT,
+                        first_name=first_name,
+                        last_name=last_name,
+                        email=student.guardian_email or '',
+                        phone_number=student.guardian_phone or ''
+                    )
+                else:
+                    if custom_password:
+                        user.set_password(raw_password)
+                        user.save()
+                student.user = user
+
+            student.save()
             messages.success(request, f"Student '{student.full_name}' ({student.admission_number}) registered successfully!")
             return redirect('students:student_profile', student_id=student.id)
     else:
         # Default academic year
         cur_ay = AcademicYear.objects.filter(is_current=True).first()
-        form = StudentForm(initial={'academic_year': cur_ay})
+        form = StudentForm(initial={'academic_year': cur_ay, 'create_login_account': True})
 
     return render(request, 'students/student_form.html', {'form': form, 'title': 'Register New Student'})
 
@@ -78,11 +108,56 @@ def student_edit(request, student_id):
     if request.method == 'POST':
         form = StudentForm(request.POST, request.FILES, instance=student)
         if form.is_valid():
-            form.save()
+            student = form.save(commit=False)
+            create_login = form.cleaned_data.get('create_login_account')
+            custom_username = form.cleaned_data.get('username')
+            custom_password = form.cleaned_data.get('password')
+
+            from accounts.models import User
+            if student.user:
+                if custom_username and custom_username.strip() != student.user.username:
+                    existing = User.objects.filter(username=custom_username.strip()).exclude(pk=student.user.pk).first()
+                    if not existing:
+                        student.user.username = custom_username.strip()
+                if custom_password:
+                    student.user.set_password(custom_password.strip())
+                student.user.email = student.guardian_email or student.user.email
+                student.user.phone_number = student.guardian_phone or student.user.phone_number
+                student.user.save()
+            elif create_login:
+                username = custom_username.strip() if custom_username else student.admission_number.strip()
+                raw_password = custom_password.strip() if custom_password else 'student123'
+                user = User.objects.filter(username=username).first()
+                if not user:
+                    name_parts = student.full_name.strip().split(' ', 1)
+                    first_name = name_parts[0]
+                    last_name = name_parts[1] if len(name_parts) > 1 else ''
+                    user = User.objects.create_user(
+                        username=username,
+                        password=raw_password,
+                        role=User.Role.PARENT,
+                        first_name=first_name,
+                        last_name=last_name,
+                        email=student.guardian_email or '',
+                        phone_number=student.guardian_phone or ''
+                    )
+                else:
+                    if custom_password:
+                        user.set_password(raw_password)
+                        user.save()
+                student.user = user
+
+            student.save()
             messages.success(request, f"Student details for '{student.full_name}' updated successfully!")
             return redirect('students:student_profile', student_id=student.id)
     else:
-        form = StudentForm(instance=student)
+        initial = {}
+        if student.user:
+            initial['username'] = student.user.username
+            initial['create_login_account'] = True
+        else:
+            initial['create_login_account'] = False
+        form = StudentForm(instance=student, initial=initial)
 
     return render(request, 'students/student_form.html', {'form': form, 'student': student, 'title': f'Edit Student: {student.full_name}'})
 

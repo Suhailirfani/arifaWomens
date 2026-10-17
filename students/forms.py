@@ -3,6 +3,32 @@ from .models import Student
 from academics.models import SchoolClass, AcademicYear
 
 class StudentForm(forms.ModelForm):
+    create_login_account = forms.BooleanField(
+        required=False,
+        initial=True,
+        label="Create Student/Parent Portal Login Account",
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
+    )
+    username = forms.CharField(
+        required=False,
+        max_length=150,
+        label="Portal Username",
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Default: Admission Number (e.g. ARF-2026-001)'
+        }),
+        help_text="Leave blank to automatically use the Admission Number as the username."
+    )
+    password = forms.CharField(
+        required=False,
+        max_length=128,
+        label="Portal Password",
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Default: student123'
+        }),
+        help_text="Leave blank to use default password 'student123' (or enter a custom password)."
+    )
     class Meta:
         model = Student
         fields = [
